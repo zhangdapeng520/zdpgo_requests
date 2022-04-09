@@ -1,9 +1,12 @@
 package main
 
-import "github.com/zhangdapeng520/zdpgo_requests/libs/requests"
+import (
+	"github.com/zhangdapeng520/zdpgo_requests"
+)
 
 func main() {
-	resp, err := requests.Get("http://www.zhanluejia.net.cn")
+	r := zdpgo_requests.New()
+	resp, err := r.Get("http://www.zhanluejia.net.cn")
 	if err != nil {
 		return
 	}
