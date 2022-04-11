@@ -25,7 +25,17 @@ func demo2() {
 	println(resp.Text())
 }
 
+func demo3String() {
+	r := zdpgo_requests.New()
+
+	// 会被当做表单数据传递
+	var data = "abc123张大鹏"
+	resp, _ := r.Post("http://localhost:8888", data)
+	println(resp.Text())
+}
+
 func main() {
 	demo1()
 	demo2()
+	demo3String()
 }

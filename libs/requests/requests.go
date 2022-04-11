@@ -82,18 +82,19 @@ func Requests() *Request {
 	return req
 }
 
-// Get ,req.Get
-
-func Get(origurl string, args ...interface{}) (resp *Response, err error) {
+// Get 发送GET请求
+// @param originUrl 要请求的URL地址
+// @param args 请求携带的参数
+func Get(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
 	req := Requests()
 
-	// call request Get
-	resp, err = req.Get(origurl, args...)
+	// 调用request发送GET请求
+	resp, err = req.Get(originUrl, ignoreParseError, args...)
 	return resp, err
 }
 
 // Get 发送GET请求
-func (req *Request) Get(originUrl string, args ...interface{}) (resp *Response, err error) {
+func (req *Request) Get(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
 	// 设置请求方法为GET
 	req.httpreq.Method = "GET"
 
@@ -125,30 +126,33 @@ func (req *Request) Get(originUrl string, args ...interface{}) (resp *Response, 
 		}
 	}
 
-	destUrl, _ := buildURLParams(originUrl, params...)
+	// 构建请求参数
+	destUrl, _ := buildURLParams(originUrl, ignoreParseError, params...)
 
-	//prepare to Do
+	// 解析目标地址
 	URL, err := url.Parse(destUrl)
 	if err != nil {
 		return nil, err
 	}
 	req.httpreq.URL = URL
 
+	// 设置cookie
 	req.ClientSetCookies()
-
 	req.RequestDebug()
 
+	// 发送请求，获取响应
 	res, err := req.Client.Do(req.httpreq)
-
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
+	// 解析响应
 	resp = &Response{}
 	resp.R = res
 	resp.req = req
 
+	// 读取内容
 	resp.Content()
 	defer res.Body.Close()
 
@@ -156,28 +160,35 @@ func (req *Request) Get(originUrl string, args ...interface{}) (resp *Response, 
 	return resp, nil
 }
 
-// handle URL params
-func buildURLParams(userURL string, params ...map[string]string) (string, error) {
+// 处理URL的参数
+func buildURLParams(userURL string, ignoreParseError bool, params ...map[string]string) (string, error) {
+	// 解析URL
 	parsedURL, err := url.Parse(userURL)
-
 	if err != nil {
 		return "", err
 	}
 
+	// 解析Query查询参数
 	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
-
 	if err != nil {
+		if ignoreParseError {
+			return userURL, nil
+		}
 		return "", nil
 	}
 
+	// 遍历参数，添加到查询参数中
 	for _, param := range params {
 		for key, value := range param {
 			parsedQuery.Add(key, value)
 		}
 	}
+
+	// 为URL添加查询参数
 	return addQueryParams(parsedURL, parsedQuery), nil
 }
 
+// 为URL添加查询参数
 func addQueryParams(parsedURL *url.URL, parsedQuery url.Values) string {
 	if len(parsedQuery) > 0 {
 		return strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1), parsedQuery.Encode()}, "?")
@@ -185,14 +196,12 @@ func addQueryParams(parsedURL *url.URL, parsedQuery url.Values) string {
 	return strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1)
 }
 
+// RequestDebug 请求调试
 func (req *Request) RequestDebug() {
-
 	if req.Debug != 1 {
 		return
 	}
-
 	fmt.Println("===========Go RequestDebug ============")
-
 	message, err := httputil.DumpRequestOut(req.httpreq, false)
 	if err != nil {
 		return
@@ -340,12 +349,13 @@ func (resp *Response) Cookies() (cookies []*http.Cookie) {
 
 // Post 发送POST请求
 // @param url 要请求的URL路径
+// @param ignoreParseError 是否忽略解析URL错误
 // @param args 要携带的参数
-func Post(url string, args ...interface{}) (resp *Response, err error) {
+func Post(url string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
 	req := Requests()
 
 	// 调用req.POST处理请求
-	resp, err = req.Post(url, args...)
+	resp, err = req.Post(url, ignoreParseError, args...)
 	return resp, err
 }
 
@@ -432,7 +442,7 @@ func (req *Request) PostJson(origurl string, args ...interface{}) (resp *Respons
 // Post 发送POST请求
 // @param originUrl 要请求的URL地址
 // @param args 请求携带的参数
-func (req *Request) Post(originUrl string, args ...interface{}) (resp *Response, err error) {
+func (req *Request) Post(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
 	// 请求的方法
 	req.httpreq.Method = "POST"
 
@@ -477,7 +487,7 @@ func (req *Request) Post(originUrl string, args ...interface{}) (resp *Response,
 		}
 	}
 
-	disturl, _ := buildURLParams(originUrl, params...)
+	disturl, _ := buildURLParams(originUrl, ignoreParseError, params...)
 
 	if len(files) > 0 {
 		req.buildFilesAndForms(files, datas)
