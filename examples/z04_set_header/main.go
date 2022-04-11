@@ -28,8 +28,9 @@ func demo3() {
 	h2 := requests.Header{
 		"Referer":         "http://www.jeapedu.com",
 		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+		"User-Agent":      "zdpgo_requests",
 	}
-	resp, _ := req.Get("http://www.zhanluejia.net.cn", h, h2)
+	resp, _ := req.Get("http://localhost:8888", h, h2)
 	println(resp.Text())
 }
 

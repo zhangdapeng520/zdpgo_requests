@@ -51,10 +51,10 @@ type Response struct {
 
 type Header map[string]string
 type Params map[string]string
-type Datas map[string]string // for post form
-type Files map[string]string // name ,filename
+type Datas map[string]string // POST提交的数据
+type Files map[string]string // 文件列表：name ,filename
 
-// {username,password}
+// Auth 权限校验类型，{username,password}
 type Auth []string
 
 func Requests() *Request {
@@ -92,40 +92,43 @@ func Get(origurl string, args ...interface{}) (resp *Response, err error) {
 	return resp, err
 }
 
-func (req *Request) Get(origurl string, args ...interface{}) (resp *Response, err error) {
-
+// Get 发送GET请求
+func (req *Request) Get(originUrl string, args ...interface{}) (resp *Response, err error) {
+	// 设置请求方法为GET
 	req.httpreq.Method = "GET"
 
-	// set params ?a=b&b=c
-	//set Header
-	params := []map[string]string{}
+	// 设置参数 ?a=b&b=c
+	var params []map[string]string
 
-	//reset Cookies,
-	//Client.Do can copy cookie from client.Jar to req.Header
+	// 重置cookie
+	// Client.Do can copy cookie from client.Jar to req.Header
 	delete(req.httpreq.Header, "Cookie")
 
+	// 遍历窜进来的参数
 	for _, arg := range args {
+		// 检测参数的类型
 		switch a := arg.(type) {
-		// arg is Header , set to request header
+		// 如果是请求头类型：requests.Header
 		case Header:
-
 			for k, v := range a {
 				req.Header.Set(k, v)
 			}
 			// arg is "GET" params
 			// ?title=website&id=1860&from=login
+		//	如果是参数类型：requests.Params
 		case Params:
 			params = append(params, a)
+		//	如果是权限校验类型
 		case Auth:
 			// a{username,password}
 			req.httpreq.SetBasicAuth(a[0], a[1])
 		}
 	}
 
-	disturl, _ := buildURLParams(origurl, params...)
+	destUrl, _ := buildURLParams(originUrl, params...)
 
 	//prepare to Do
-	URL, err := url.Parse(disturl)
+	URL, err := url.Parse(destUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -142,12 +145,11 @@ func (req *Request) Get(origurl string, args ...interface{}) (resp *Response, er
 		return nil, err
 	}
 
-
 	resp = &Response{}
 	resp.R = res
 	resp.req = req
 
-    resp.Content()
+	resp.Content()
 	defer res.Body.Close()
 
 	resp.ResponseDebug()
@@ -232,9 +234,8 @@ func (req *Request) SetTimeout(n time.Duration) {
 	req.Client.Timeout = time.Duration(n * time.Second)
 }
 
-
-func (req *Request) Close( ) {
-    req.httpreq.Close = true
+func (req *Request) Close() {
+	req.httpreq.Close = true
 }
 
 func (req *Request) Proxy(proxyurl string) {
@@ -274,9 +275,9 @@ func (resp *Response) Content() []byte {
 
 	var err error
 
-    if len(resp.content) > 0{
-        return resp.content
-    }
+	if len(resp.content) > 0 {
+		return resp.content
+	}
 
 	var Body = resp.R.Body
 	if resp.R.Header.Get("Content-Encoding") == "gzip" && resp.req.Header.Get("Accept-Encoding") != "" {
@@ -337,49 +338,54 @@ func (resp *Response) Cookies() (cookies []*http.Cookie) {
 
 }
 
-/**************post*************************/
-// call req.Post ,only for easy
-func Post(origurl string, args ...interface{}) (resp *Response, err error) {
+// Post 发送POST请求
+// @param url 要请求的URL路径
+// @param args 要携带的参数
+func Post(url string, args ...interface{}) (resp *Response, err error) {
 	req := Requests()
 
-	// call request Get
-	resp, err = req.Post(origurl, args...)
+	// 调用req.POST处理请求
+	resp, err = req.Post(url, args...)
 	return resp, err
 }
 
-func PostJson(origurl string, args ...interface{}) (resp *Response, err error) {
+// PostJson 发送POST请求且传递json格式的数据
+func PostJson(originUrl string, args ...interface{}) (resp *Response, err error) {
 	req := Requests()
 
-	// call request Get
-	resp, err = req.PostJson(origurl, args...)
+	// 发送req的POST请求
+	resp, err = req.PostJson(originUrl, args...)
 	return resp, err
 }
 
-// POST requests
-
+// PostJson 发送POST请求
 func (req *Request) PostJson(origurl string, args ...interface{}) (resp *Response, err error) {
-
+	// 设置请求方法
 	req.httpreq.Method = "POST"
 
+	// 设置请求头
 	req.Header.Set("Content-Type", "application/json")
 
-	//reset Cookies,
-	//Client.Do can copy cookie from client.Jar to req.Header
+	// 重置cookie
+	// Client.Do can copy cookie from client.Jar to req.Header
 	delete(req.httpreq.Header, "Cookie")
 
+	// 遍历参数
 	for _, arg := range args {
 		switch a := arg.(type) {
-		// arg is Header , set to request header
+		// 设置请求头
 		case Header:
-
 			for k, v := range a {
 				req.Header.Set(k, v)
 			}
+		//	设置数据内容，期望是一个json字符串
 		case string:
 			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(arg.(string))))
+		//	设置权限校验
 		case Auth:
 			// a{username,password}
 			req.httpreq.SetBasicAuth(a[0], a[1])
+		//	其他数据类型，一律使用json数据传递
 		default:
 			b := new(bytes.Buffer)
 			err = json.NewEncoder(b).Encode(a)
@@ -413,58 +419,65 @@ func (req *Request) PostJson(origurl string, args ...interface{}) (resp *Respons
 		return nil, err
 	}
 
-
 	resp = &Response{}
 	resp.R = res
 	resp.req = req
 
-    resp.Content()
-    defer res.Body.Close()
+	resp.Content()
+	defer res.Body.Close()
 	resp.ResponseDebug()
 	return resp, nil
 }
 
-func (req *Request) Post(origurl string, args ...interface{}) (resp *Response, err error) {
-
+// Post 发送POST请求
+// @param originUrl 要请求的URL地址
+// @param args 请求携带的参数
+func (req *Request) Post(originUrl string, args ...interface{}) (resp *Response, err error) {
+	// 请求的方法
 	req.httpreq.Method = "POST"
 
-    //set default
+	// 设置默认的请求头
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// set params ?a=b&b=c
-	//set Header
-	params := []map[string]string{}
-	datas := []map[string]string{} // POST
-	files := []map[string]string{} //post file
+	var params []map[string]string
+	var datas []map[string]string // POST
+	var files []map[string]string //post file
 
-	//reset Cookies,
-	//Client.Do can copy cookie from client.Jar to req.Header
+	// 重置cookie
+	// Client.Do can copy cookie from client.Jar to req.Header
 	delete(req.httpreq.Header, "Cookie")
 
+	// 遍历请求参数
 	for _, arg := range args {
 		switch a := arg.(type) {
-		// arg is Header , set to request header
+		// 设置请求头
 		case Header:
 
 			for k, v := range a {
 				req.Header.Set(k, v)
 			}
-			// arg is "GET" params
 			// ?title=website&id=1860&from=login
+		//	设置Query查询参数
 		case Params:
 			params = append(params, a)
-
+		// 设置POST数据
 		case Datas: //Post form data,packaged in body.
 			datas = append(datas, a)
+		//	设置文件列表
 		case Files:
 			files = append(files, a)
+		//	设置权限校验
 		case Auth:
 			// a{username,password}
 			req.httpreq.SetBasicAuth(a[0], a[1])
+		//	如果是map，默认当data数据处理
+		case map[string]string:
+			datas = append(datas, a)
 		}
 	}
 
-	disturl, _ := buildURLParams(origurl, params...)
+	disturl, _ := buildURLParams(originUrl, params...)
 
 	if len(files) > 0 {
 		req.buildFilesAndForms(files, datas)
@@ -496,13 +509,12 @@ func (req *Request) Post(origurl string, args ...interface{}) (resp *Response, e
 		return nil, err
 	}
 
-
 	resp = &Response{}
 	resp.R = res
 	resp.req = req
 
-    resp.Content()
-    defer res.Body.Close()
+	resp.Content()
+	defer res.Body.Close()
 
 	resp.ResponseDebug()
 	return resp, nil
