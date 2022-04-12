@@ -1,6 +1,8 @@
 package zdpgo_requests
 
-import "github.com/zhangdapeng520/zdpgo_requests/libs/requests"
+import (
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+)
 
 type Requests struct {
 }

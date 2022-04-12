@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_requests/libs/requests"
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
 func main() {
@@ -12,6 +12,6 @@ func main() {
 		"name":  "file",
 		"id":    "12345",
 	}
-	resp, _ := req.Get("http://www.cpython.org", p)
+	resp, _ := req.Get("http://localhost:8888", false, p)
 	fmt.Println(resp.Text())
 }

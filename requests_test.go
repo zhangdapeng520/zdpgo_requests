@@ -1,26 +1,18 @@
-# zdpgo_requests
-Golang中用于发送HTTP请求的库
-
-## 版本历史
-- 版本0.1.0 2022年4月9日 新增GET和POST请求
-- 版本0.1.1 2022年4月11日 POST的map默认当表单数据
-- 版本0.1.2 2022年4月11日 添加忽略URL解析错误的请求方法
-- 版本0.1.3 2022年4月12日 支持POST纯文本数据
-- 版本0.1.4 2022年4月12日 代码重构
-
-## 使用案例
-### 快速入门
-```go
-package main
+package zdpgo_requests
 
 import (
-	"github.com/zhangdapeng520/zdpgo_requests"
 	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+	"testing"
 )
 
-func main() {
+func getRequests() *Requests {
+	return New()
+}
+
+// 测试基本使用
+func TestRequests_basic(t *testing.T) {
 	// 发送GET请求
-	r := zdpgo_requests.New()
+	r := getRequests()
 	url := "http://localhost:8888"
 	resp, err := r.Get(url, true)
 	if err != nil {
@@ -52,4 +44,3 @@ func main() {
 	)
 	println(resp.Text())
 }
-```

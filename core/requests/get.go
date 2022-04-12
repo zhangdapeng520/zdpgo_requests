@@ -46,11 +46,11 @@ func (req *Request) Get(originUrl string, ignoreParseError bool, args ...interfa
 	if err != nil {
 		return nil, err
 	}
+
 	req.httpreq.URL = URL
 
 	// 设置cookie
 	req.ClientSetCookies()
-	req.RequestDebug()
 
 	// 发送请求，获取响应
 	res, err := req.Client.Do(req.httpreq)
@@ -68,6 +68,16 @@ func (req *Request) Get(originUrl string, ignoreParseError bool, args ...interfa
 	resp.Content()
 	defer res.Body.Close()
 
-	resp.ResponseDebug()
 	return resp, nil
+}
+
+// Get 发送GET请求
+// @param originUrl 要请求的URL地址
+// @param args 请求携带的参数
+func Get(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
+	req := Requests()
+
+	// 调用request发送GET请求
+	resp, err = req.Get(originUrl, ignoreParseError, args...)
+	return resp, err
 }

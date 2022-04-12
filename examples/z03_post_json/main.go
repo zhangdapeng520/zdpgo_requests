@@ -1,6 +1,8 @@
 package main
 
-import "github.com/zhangdapeng520/zdpgo_requests/libs/requests"
+import (
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+)
 
 // 发送JSON字符串
 func demo1() {
@@ -17,11 +19,11 @@ func demo2JsonMap() {
 	var headers requests.Header = map[string]string{
 		"Content-Type": "application/json",
 	}
-	resp, _ := requests.Post("http://localhost:8888", jsonStr, headers)
+	resp, _ := requests.Post("http://localhost:8888", true, jsonStr, headers)
 	println(resp.Text())
 }
 
 func main() {
-	//demo1()
+	demo1()
 	demo2JsonMap()
 }

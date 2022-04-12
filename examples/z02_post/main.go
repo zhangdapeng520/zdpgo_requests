@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/zhangdapeng520/zdpgo_requests"
-	"github.com/zhangdapeng520/zdpgo_requests/libs/requests"
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
 func demo1() {
@@ -35,7 +35,7 @@ func demo3String() {
 }
 
 func main() {
-	//demo1()
-	//demo2()
+	demo1()
+	demo2()
 	demo3String()
 }
