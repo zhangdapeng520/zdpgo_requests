@@ -93,73 +93,6 @@ func Get(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Re
 	return resp, err
 }
 
-// Get 发送GET请求
-func (req *Request) Get(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
-	// 设置请求方法为GET
-	req.httpreq.Method = "GET"
-
-	// 设置参数 ?a=b&b=c
-	var params []map[string]string
-
-	// 重置cookie
-	// Client.Do can copy cookie from client.Jar to req.Header
-	delete(req.httpreq.Header, "Cookie")
-
-	// 遍历窜进来的参数
-	for _, arg := range args {
-		// 检测参数的类型
-		switch a := arg.(type) {
-		// 如果是请求头类型：requests.Header
-		case Header:
-			for k, v := range a {
-				req.Header.Set(k, v)
-			}
-			// arg is "GET" params
-			// ?title=website&id=1860&from=login
-		//	如果是参数类型：requests.Params
-		case Params:
-			params = append(params, a)
-		//	如果是权限校验类型
-		case Auth:
-			// a{username,password}
-			req.httpreq.SetBasicAuth(a[0], a[1])
-		}
-	}
-
-	// 构建请求参数
-	destUrl, _ := buildURLParams(originUrl, ignoreParseError, params...)
-
-	// 解析目标地址
-	URL, err := url.Parse(destUrl)
-	if err != nil {
-		return nil, err
-	}
-	req.httpreq.URL = URL
-
-	// 设置cookie
-	req.ClientSetCookies()
-	req.RequestDebug()
-
-	// 发送请求，获取响应
-	res, err := req.Client.Do(req.httpreq)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	// 解析响应
-	resp = &Response{}
-	resp.R = res
-	resp.req = req
-
-	// 读取内容
-	resp.Content()
-	defer res.Body.Close()
-
-	resp.ResponseDebug()
-	return resp, nil
-}
-
 // 处理URL的参数
 func buildURLParams(userURL string, ignoreParseError bool, params ...map[string]string) (string, error) {
 	// 解析URL
@@ -439,125 +372,30 @@ func (req *Request) PostJson(origurl string, args ...interface{}) (resp *Respons
 	return resp, nil
 }
 
-// Post 发送POST请求
-// @param originUrl 要请求的URL地址
-// @param args 请求携带的参数
-func (req *Request) Post(originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
-	// 请求的方法
-	req.httpreq.Method = "POST"
-
-	// 设置默认的请求头
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// set params ?a=b&b=c
-	var params []map[string]string
-	var datas []map[string]string // POST
-	var files []map[string]string //post file
-
-	// 重置cookie
-	// Client.Do can copy cookie from client.Jar to req.Header
-	delete(req.httpreq.Header, "Cookie")
-
-	// 遍历请求参数
-	for _, arg := range args {
-		switch a := arg.(type) {
-		// 设置请求头
-		case Header:
-
-			for k, v := range a {
-				req.Header.Set(k, v)
-			}
-			// ?title=website&id=1860&from=login
-		//	设置Query查询参数
-		case Params:
-			params = append(params, a)
-		// 设置POST数据
-		case Datas: //Post form data,packaged in body.
-			datas = append(datas, a)
-		//	设置文件列表
-		case Files:
-			files = append(files, a)
-		//	设置权限校验
-		case Auth:
-			// a{username,password}
-			req.httpreq.SetBasicAuth(a[0], a[1])
-		//	如果是map，默认当data数据处理
-		case map[string]string:
-			datas = append(datas, a)
-		}
-	}
-
-	disturl, _ := buildURLParams(originUrl, ignoreParseError, params...)
-
-	if len(files) > 0 {
-		req.buildFilesAndForms(files, datas)
-
-	} else {
-		Forms := req.buildForms(datas...)
-		req.setBodyBytes(Forms) // set forms to body
-	}
-	//prepare to Do
-	URL, err := url.Parse(disturl)
-	if err != nil {
-		return nil, err
-	}
-	req.httpreq.URL = URL
-
-	req.ClientSetCookies()
-
-	req.RequestDebug()
-
-	res, err := req.Client.Do(req.httpreq)
-
-	// clear post param
-	req.httpreq.Body = nil
-	req.httpreq.GetBody = nil
-	req.httpreq.ContentLength = 0
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	resp = &Response{}
-	resp.R = res
-	resp.req = req
-
-	resp.Content()
-	defer res.Body.Close()
-
-	resp.ResponseDebug()
-	return resp, nil
-}
-
-// only set forms
+// 设置表单的字段
 func (req *Request) setBodyBytes(Forms url.Values) {
-
-	// maybe
 	data := Forms.Encode()
 	req.httpreq.Body = ioutil.NopCloser(strings.NewReader(data))
 	req.httpreq.ContentLength = int64(len(data))
 }
 
-// only set forms
+// 设置表单的二进制输入流
 func (req *Request) setBodyRawBytes(read io.ReadCloser) {
 	req.httpreq.Body = read
 }
 
-// upload file and form
-// build to body format
+// 构建文件和表单
 func (req *Request) buildFilesAndForms(files []map[string]string, datas []map[string]string) {
-
-	//handle file multipart
-
+	// 处理文件
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
+	// 变量文件列表
 	for _, file := range files {
 		for k, v := range file {
 			part, err := w.CreateFormFile(k, v)
 			if err != nil {
-				fmt.Printf("Upload %s failed!", v)
+				fmt.Printf("上传文件 %s 失败！", v)
 				panic(err)
 			}
 			file := openFile(v)
@@ -568,21 +406,21 @@ func (req *Request) buildFilesAndForms(files []map[string]string, datas []map[st
 		}
 	}
 
+	// 添加表单数据
 	for _, data := range datas {
 		for k, v := range data {
 			w.WriteField(k, v)
 		}
 	}
-
 	w.Close()
-	// set file header example:
-	// "Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
+
+	// 设置文件头："Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
 	req.httpreq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
 	req.httpreq.ContentLength = int64(b.Len())
 	req.Header.Set("Content-Type", w.FormDataContentType())
 }
 
-// build post Form data
+// 构建表单数据
 func (req *Request) buildForms(datas ...map[string]string) (Forms url.Values) {
 	Forms = url.Values{}
 	for _, data := range datas {
@@ -593,8 +431,7 @@ func (req *Request) buildForms(datas ...map[string]string) (Forms url.Values) {
 	return Forms
 }
 
-// open file for post upload files
-
+// 打开文件用于上传
 func openFile(filename string) *os.File {
 	r, err := os.Open(filename)
 	if err != nil {

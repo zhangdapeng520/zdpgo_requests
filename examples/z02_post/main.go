@@ -35,7 +35,7 @@ func demo3String() {
 }
 
 func main() {
-	demo1()
-	demo2()
+	//demo1()
+	//demo2()
 	demo3String()
 }

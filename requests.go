@@ -25,6 +25,7 @@ func (r *Requests) GetIgnoreParseError(url string, args ...interface{}) (*reques
 
 // Post 发送POST请求
 func (r *Requests) Post(url string, args ...interface{}) (*requests.Response, error) {
+	// 调用requests的POST请求
 	resp, err := requests.Post(url, false, args...)
 	return resp, err
 }
