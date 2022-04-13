@@ -22,6 +22,5 @@ func (req *Request) Proxy(proxyUrl string) error {
 		Proxy:           http.ProxyURL(urlProxy),
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-
 	return nil
 }
