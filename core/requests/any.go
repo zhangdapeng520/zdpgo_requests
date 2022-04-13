@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/url"
 	"strings"
@@ -16,11 +17,9 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	// 设置默认的请求头
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// set params ?a=b&b=c
 	var params []map[string]string // query查询参数
 	var datas []map[string]string  // form表单数据
 	var files []map[string]string  // 文件列表
-	var rawData string             // 纯文本数据
 
 	// 重置cookie
 	// Client.Do can copy cookie from client.Jar to req.Header
@@ -29,31 +28,34 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	// 遍历请求参数
 	for _, arg := range args {
 		switch a := arg.(type) {
-		// 设置请求头
-		case Header:
+		case Header: // 设置请求头
 			for k, v := range a {
 				req.Header.Set(k, v)
 			}
-			// ?title=website&id=1860&from=login
-		//	设置Query查询参数
-		case Params:
+		case Params: //	设置Query查询参数
 			params = append(params, a)
-		// 设置POST数据
-		case Datas: //Post form data,packaged in body.
+		case Datas: // 设置POST数据
 			datas = append(datas, a)
-		//	设置文件列表
-		case Files:
+		case Files: //	设置文件列表
 			files = append(files, a)
-		//	设置权限校验
-		case Auth:
+		case Auth: //	设置权限校验
 			// a{username,password}
 			req.httpreq.SetBasicAuth(a[0], a[1])
-		//	如果是map，默认当data数据处理
-		case map[string]string:
+		case map[string]string: // 如果是map，默认当data数据处理
 			datas = append(datas, a)
-		//	如果是字符串，则当成是raw纯文本数据
-		case string:
-			rawData = a
+		case JsonData: // 如果是JsonData结构体类型
+			jsonStr, err := json.Marshal(arg.(JsonData))
+			if err != nil {
+				return nil, err
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(string(jsonStr))))
+		case JsonString: //	如果是Json字符串
+			req.Header.Set("Content-Type", "application/json")
+			jsonStr := string(arg.(JsonString))
+			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(jsonStr)))
+		case string: //	如果是字符串，则当成是raw纯文本数据
+			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(arg.(string))))
 		}
 	}
 
@@ -61,12 +63,10 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	destUrl, _ := buildURLParams(originUrl, ignoreParseError, params...)
 
 	if len(files) > 0 {
-		// 构建文件和表单
-		req.buildFilesAndForms(files, datas)
-	} else {
-		// 构建表单
-		Forms := req.buildForms(datas...)
-		req.setBodyBytes(Forms) // set forms to body
+		req.buildFilesAndForms(files, datas) // 构建文件和表单
+	} else if len(datas) > 0 {
+		Forms := req.buildForms(datas...) // 构建表单
+		req.setBodyBytes(Forms)
 	}
 
 	// 准备执行请求
@@ -76,11 +76,6 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	}
 	req.httpreq.URL = URL
 	req.ClientSetCookies()
-
-	// 如果存在纯文本数据，则设置纯文本数据
-	if rawData != "" {
-		req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(rawData)))
-	}
 
 	// 发送请求
 	res, err := req.Client.Do(req.httpreq)
@@ -103,5 +98,6 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	resp.Content()
 	defer res.Body.Close()
 
+	// 返回响应
 	return resp, nil
 }

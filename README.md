@@ -9,6 +9,7 @@ Golang中用于发送HTTP请求的库
 - 版本0.1.4 2022年4月12日 代码重构
 - 版本0.1.5 2022年4月13日 支持任意类型HTTP请求
 - 版本0.1.6 2022年4月13日 支持设置代理
+- 版本0.1.7 2022年4月13日 支持发送JSON数据
 
 ## 使用案例
 ### 快速入门
@@ -112,5 +113,49 @@ func main() {
 	// 设置了代理以后，请求被重定向了代理的URL
 	resp, _ := req.Get("http://localhost:9999", false)
 	fmt.Println("响应：", resp.Text())
+}
+```
+
+### 发送JSON数据
+```go
+package main
+
+import (
+	"github.com/zhangdapeng520/zdpgo_requests"
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+)
+
+func main() {
+	r := zdpgo_requests.New()
+
+	// 发送JSON字符串
+	var jsonStr requests.JsonString = "{\"name\":\"requests_post_test\"}"
+	resp, _ := r.Post("http://localhost:8888", jsonStr)
+	println(resp.Text())
+
+	// 发送map
+	var data requests.JsonData = make(map[string]interface{})
+	data["name"] = "root"
+	data["password"] = "root"
+	data["host"] = "localhost"
+	data["port"] = 8888
+	resp, _ = r.Post("http://localhost:8888", data)
+	println(resp.Text())
+
+	// PUT发送JSON数据
+	resp, _ = r.Put("http://localhost:8888", data)
+	println(resp.Text())
+
+	// DELETE发送JSON数据
+	resp, _ = r.Delete("http://localhost:8888", data)
+	println(resp.Text())
+
+	// PATCH发送JSON数据
+	resp, _ = r.Patch("http://localhost:8888", data)
+	println(resp.Text())
+
+	// 发送纯文本数据（非json）
+	resp, _ = r.Post("http://localhost:8888", "纯文本内容。。。")
+	println(resp.Text())
 }
 ```

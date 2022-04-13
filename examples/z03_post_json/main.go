@@ -1,29 +1,40 @@
 package main
 
 import (
+	"github.com/zhangdapeng520/zdpgo_requests"
 	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
-// 发送JSON字符串
-func demo1() {
-	jsonStr := "{\"name\":\"requests_post_test\"}"
-	resp, _ := requests.PostJson("http://localhost:8888", jsonStr)
-	println(resp.Text())
-}
-
-// 发送JSON字典
-func demo2JsonMap() {
-	var jsonStr requests.Datas = map[string]string{
-		"username": "zhangdapeng520",
-	}
-	var headers requests.Header = map[string]string{
-		"Content-Type": "application/json",
-	}
-	resp, _ := requests.Post("http://localhost:8888", true, jsonStr, headers)
-	println(resp.Text())
-}
-
 func main() {
-	demo1()
-	demo2JsonMap()
+	r := zdpgo_requests.New()
+
+	// 发送JSON字符串
+	var jsonStr requests.JsonString = "{\"name\":\"requests_post_test\"}"
+	resp, _ := r.Post("http://localhost:8888", jsonStr)
+	println(resp.Text())
+
+	// 发送map
+	var data requests.JsonData = make(map[string]interface{})
+	data["name"] = "root"
+	data["password"] = "root"
+	data["host"] = "localhost"
+	data["port"] = 8888
+	resp, _ = r.Post("http://localhost:8888", data)
+	println(resp.Text())
+
+	// PUT发送JSON数据
+	resp, _ = r.Put("http://localhost:8888", data)
+	println(resp.Text())
+
+	// DELETE发送JSON数据
+	resp, _ = r.Delete("http://localhost:8888", data)
+	println(resp.Text())
+
+	// PATCH发送JSON数据
+	resp, _ = r.Patch("http://localhost:8888", data)
+	println(resp.Text())
+
+	// 发送纯文本数据（非json）
+	resp, _ = r.Post("http://localhost:8888", "纯文本内容。。。")
+	println(resp.Text())
 }
