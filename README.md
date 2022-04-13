@@ -8,6 +8,7 @@ Golang中用于发送HTTP请求的库
 - 版本0.1.3 2022年4月12日 支持POST纯文本数据
 - 版本0.1.4 2022年4月12日 代码重构
 - 版本0.1.5 2022年4月13日 支持任意类型HTTP请求
+- 版本0.1.6 2022年4月13日 支持设置代理
 
 ## 使用案例
 ### 快速入门
@@ -86,5 +87,30 @@ func main() {
 	// 发送PATCH请求
 	resp, _ = r.Patch(targetUrl)
 	println(resp.Text())
+}
+```
+
+### 设置代理
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_requests"
+)
+
+func main() {
+	req := zdpgo_requests.New()
+
+	// 设置代理
+	err := req.SetProxy("http://localhost:8888")
+	if err != nil {
+		panic(err)
+	}
+
+	// 发送请求
+	// 设置了代理以后，请求被重定向了代理的URL
+	resp, _ := req.Get("http://localhost:9999", false)
+	fmt.Println("响应：", resp.Text())
 }
 ```
