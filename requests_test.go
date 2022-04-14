@@ -1,6 +1,7 @@
 package zdpgo_requests
 
 import (
+	"fmt"
 	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 	"testing"
 )
@@ -43,4 +44,37 @@ func TestRequests_basic(t *testing.T) {
 		requests.Auth{"zhangdapeng520", "password...."},
 	)
 	println(resp.Text())
+}
+
+// 测试设置请求头
+func TestRequests_header(t *testing.T) {
+	// 直接设置请求头
+	req := getRequests()
+	req.Request.Header.Set("accept-encoding", "gzip, deflate, br")
+	resp, _ := req.Get("http://localhost:8888", false, requests.Header{"Referer": "http://127.0.0.1:9999"})
+	println(resp.Text())
+
+	// 将请求头作为参数传递
+	h := requests.Header{
+		"Referer":         "http://localhost:8888",
+		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+	}
+	h2 := requests.Header{
+		"Referer":         "http://localhost:8888",
+		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+		"User-Agent":      "zdpgo_requests",
+	}
+	resp, _ = req.Get("http://localhost:8888", h, h2)
+	println(resp.Text())
+}
+
+// 测试设置查询参数
+func TestRequests_params(t *testing.T) {
+	req := getRequests()
+	p := requests.Params{
+		"name": "file",
+		"id":   "12345",
+	}
+	resp, _ := req.Get("http://localhost:8888", false, p)
+	fmt.Println(resp.Text())
 }
