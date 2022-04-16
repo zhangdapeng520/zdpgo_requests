@@ -79,7 +79,14 @@ func buildURLParams(userURL string, ignoreParseError bool, params ...map[string]
 	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
 	if err != nil {
 		if ignoreParseError {
-			return userURL, nil
+			// 无法正常解析query参数，尝试讲query参数进行URL编码后再请求
+			resultUrl := fmt.Sprintf("%s://%s%s?%s",
+				parsedURL.Scheme,
+				parsedURL.Host,
+				parsedURL.Path,
+				url.PathEscape(parsedURL.RawQuery),
+			)
+			return resultUrl, nil
 		}
 		return "", nil
 	}
