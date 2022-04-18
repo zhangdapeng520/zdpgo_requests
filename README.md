@@ -11,7 +11,9 @@ Golang中用于发送HTTP请求的库
 - 版本0.1.6 2022年4月13日 支持设置代理
 - 版本0.1.7 2022年4月13日 支持发送JSON数据
 - 版本0.1.8 2022年4月16日 解决部分URL无法正常请求的BUG
-
+- 版本0.1.9 2022年4月18日 BUG修复：header请求头重复
+- 版本0.2.0 2022年4月18日 新增：获取请求和响应详情
+  
 ## 使用案例
 ### 快速入门
 ```go
@@ -229,5 +231,44 @@ func main() {
 		requests.Auth{"zhangdapeng", "zhangdapeng"},
 	)
 	println(resp.Text())
+}
+```
+
+### 获取请求和响应详情
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_requests"
+	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+)
+
+func main() {
+	// 发送GET请求
+	r := zdpgo_requests.New()
+	baseUrl := "http://10.1.3.12:8888/"
+	query := "?a=<script>alert(\"XSS\");</script>&b=UNION SELECT ALL FROM information_schema AND ' or SLEEP(5) or '&c=../../../../etc/passwd"
+	url := baseUrl + query
+
+	var h1 requests.Header = requests.Header{"a": "111", "b": "222"}
+	resp, err := r.GetIgnoreParseError(url, h1)
+	if err != nil {
+		fmt.Println("错误2", err)
+	} else {
+		println(resp.Text())
+		println("请求详情：\n", resp.RawReqDetail)
+		println("响应详情：\n", resp.RawRespDetail)
+	}
+
+	var h2 requests.Header = requests.Header{"c": "333", "d": "444"}
+	resp1, err := r.GetIgnoreParseError(url, h2)
+	if err != nil {
+		fmt.Println("错误3", err)
+	} else {
+		println(resp1.Text())
+		println("请求详情：\n", resp.RawReqDetail)
+		println("响应详情：\n", resp.RawRespDetail)
+	}
 }
 ```

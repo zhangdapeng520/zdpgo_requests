@@ -3,6 +3,7 @@ package requests
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 )
@@ -84,17 +85,28 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 
 	// 发送请求
 	res, err := req.Client.Do(req.httpreq)
+	resp = &Response{}
 
+	// 记录请求详情
+	requestDump, err := httputil.DumpRequest(res.Request, true)
+	if err != nil {
+		return nil, err
+	}
+	resp.RawReqDetail = string(requestDump)
+
+	// 记录响应详情
+	responseDump, err := httputil.DumpResponse(res, true)
+	if err != nil {
+		return nil, err
+	}
+	resp.RawRespDetail = string(responseDump)
+
+	// 请求请求内容
 	req.httpreq.Body = nil        // 清空请求体
 	req.httpreq.GetBody = nil     // 清空get参数
 	req.httpreq.ContentLength = 0 // 清空内容长度
 
-	if err != nil {
-		return nil, err
-	}
-
 	// 解析响应
-	resp = &Response{}
 	resp.R = res
 	resp.req = req
 
