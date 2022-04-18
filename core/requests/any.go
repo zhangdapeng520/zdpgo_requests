@@ -14,6 +14,11 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	// 请求的方法
 	req.httpreq.Method = strings.ToUpper(method)
 
+	// 清空Header
+	for k, _ := range req.httpreq.Header {
+		delete(req.httpreq.Header, k)
+	}
+
 	// 设置默认的请求头
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -23,7 +28,7 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 
 	// 重置cookie
 	// Client.Do can copy cookie from client.Jar to req.Header
-	delete(req.httpreq.Header, "Cookie")
+	//delete(req.httpreq.Header, "Cookie")
 
 	// 遍历请求参数
 	for _, arg := range args {
@@ -80,10 +85,9 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	// 发送请求
 	res, err := req.Client.Do(req.httpreq)
 
-	// 清空POST的参数
-	req.httpreq.Body = nil
-	req.httpreq.GetBody = nil
-	req.httpreq.ContentLength = 0
+	req.httpreq.Body = nil        // 清空请求体
+	req.httpreq.GetBody = nil     // 清空get参数
+	req.httpreq.ContentLength = 0 // 清空内容长度
 
 	if err != nil {
 		return nil, err
