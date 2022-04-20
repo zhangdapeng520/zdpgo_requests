@@ -14,6 +14,7 @@ Golang中用于发送HTTP请求的库
 - 版本0.1.9 2022年4月18日 BUG修复：header请求头重复
 - 版本0.2.0 2022年4月18日 新增：获取请求和响应详情
 - 版本0.2.1 2022年4月20日 新增：获取响应状态码
+- 版本0.2.2 2022年4月20日 新增：下载文件
   
 ## 使用案例
 ### 快速入门
@@ -270,6 +271,24 @@ func main() {
 		println(resp1.Text())
 		println("请求详情：\n", resp.RawReqDetail)
 		println("响应详情：\n", resp.RawRespDetail)
+	}
+}
+```
+
+### 下载图片
+```go
+package main
+
+import (
+	"github.com/zhangdapeng520/zdpgo_requests"
+)
+
+func main() {
+	r := zdpgo_requests.New()
+	imgUrl := "https://www.twle.cn/static/i/img1.jpg"
+	err := r.Download(imgUrl, "test1.jpg")
+	if err != nil {
+		panic(err)
 	}
 }
 ```
