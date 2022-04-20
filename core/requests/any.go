@@ -85,7 +85,9 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 
 	// 发送请求
 	res, err := req.Client.Do(req.httpreq)
-	resp = &Response{}
+	resp = &Response{
+		StatusCode: res.StatusCode,
+	}
 
 	// 记录请求详情
 	requestDump, err := httputil.DumpRequest(res.Request, true)
