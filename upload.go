@@ -3,6 +3,7 @@ package zdpgo_requests
 import (
 	"bytes"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -78,4 +79,70 @@ func (r *Requests) UploadToBytes(targetUrl string, filePath string) ([]byte, err
 	}
 
 	return respBody, nil
+}
+
+// UploadFsToBytes 上传FS文件系统的文件，返回bytes数据
+func (r *Requests) UploadFsToBytes(targetUrl string, fsObj fs.FS, fileFormName, filePath string) (result []byte,
+	err error) {
+	bodyBuf := &bytes.Buffer{}
+	bodyWriter := multipart.NewWriter(bodyBuf)
+
+	// 关键的一步操作
+	fileWriter, err := bodyWriter.CreateFormFile(fileFormName, filePath)
+	if err != nil {
+		return
+	}
+
+	// 打开文件句柄操作
+	fh, err := fsObj.Open(filePath)
+	if err != nil {
+		return
+	}
+	defer fh.Close()
+
+	// iocopy
+	_, err = io.Copy(fileWriter, fh)
+	if err != nil {
+		return
+	}
+
+	contentType := bodyWriter.FormDataContentType()
+	bodyWriter.Close()
+
+	resp, err := http.Post(targetUrl, contentType, bodyBuf)
+	if err != nil {
+		return
+	}
+
+	// 读取响应体数据
+	result, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	// 返回结果
+	return
+}
+
+// UploadFsToString 上传FS系统文件，并将结果转换为字符串返回
+func (r *Requests) UploadFsToString(targetUrl string, fsObj fs.FS, fileFormName, filePath string) (result string,
+	err error) {
+	toBytes, err := r.UploadFsToBytes(targetUrl, fsObj, fileFormName, filePath)
+	if err != nil {
+		return
+	}
+	result = string(toBytes)
+	return
+}
+
+// UploadToString 上传文件并返回响应字符串
+// @param targetUrl 目标地址
+// @param filePath 上传文件的路径
+// @return 响应内容，错误对象
+func (r *Requests) UploadToString(targetUrl string, filePath string) (string, error) {
+	resp, err := r.UploadToBytes(targetUrl, filePath)
+	if err != nil {
+		return "", err
+	}
+	return string(resp), nil
 }

@@ -16,6 +16,7 @@ Golang中用于发送HTTP请求的库
 - 版本0.2.1 2022年4月20日 新增：获取响应状态码
 - 版本0.2.2 2022年4月20日 新增：下载文件
 - 版本0.2.3 2022年4月21日 新增：文件上传
+- 版本0.2.4 2022年4月22日 新增：支持上传FS文件系统文件
   
 ## 使用案例
 ### 快速入门
@@ -294,7 +295,7 @@ func main() {
 }
 ```
 
-## 文件上传
+### 文件上传
 ```go
 package main
 
@@ -309,5 +310,38 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+```
+
+### 上传FS文件系统文件
+```go
+package main
+
+import (
+	"embed"
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_requests"
+)
+
+//go:embed test/*
+var fsObj embed.FS
+
+func main() {
+	r := zdpgo_requests.New()
+
+	targetUrl := "http://localhost:8888/upload"
+	filename := "test/main.go"
+
+	respBytes, err := r.UploadFsToBytes(targetUrl, fsObj, "file", filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(respBytes))
+
+	respString, err := r.UploadFsToString(targetUrl, fsObj, "file", filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(respString)
 }
 ```
