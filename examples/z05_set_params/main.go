@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/zhangdapeng520/zdpgo_requests"
-	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
 func main() {
-	req := zdpgo_requests.New()
-	p := requests.Params{
+	req := zdpgo_New()
+	p := zdpgo_Params{
 		"name": "file",
 		"id":   "12345",
 	}

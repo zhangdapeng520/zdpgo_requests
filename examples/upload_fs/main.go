@@ -10,7 +10,7 @@ import (
 var fsObj embed.FS
 
 func main() {
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 
 	targetUrl := "http://localhost:8888/upload"
 	filename := "test/main.go"

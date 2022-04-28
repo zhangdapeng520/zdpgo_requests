@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	req := requests.Requests()
+	req := Requests()
 	resp, _ := req.Get("http://localhost:8888", false)
 	coo := resp.Cookies()
 	println("********cookies*******")

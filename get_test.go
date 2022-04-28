@@ -5,7 +5,7 @@ import "testing"
 // 测试各种HTTP请求方法
 func TestRequests_method(t *testing.T) {
 	r := getRequests()
-	targetUrl := "http://localhost:8888"
+	targetUrl := "http://localhost:8888/payload"
 
 	// 发送GET请求
 	resp, _ := r.Get(targetUrl)

@@ -1,11 +1,23 @@
-package requests
+package zdpgo_requests
 
 import (
 	"compress/gzip"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
+
+// Response 响应对象
+type Response struct {
+	R             *http.Response // 响应对象
+	content       []byte         // 响应内容
+	text          string         // 响应文本
+	req           *Request       // 请求对象
+	RawReqDetail  string         // 请求详情字符串
+	RawRespDetail string         // 响应详情字符串
+	StatusCode    int            // 状态码
+}
 
 // Content 获取响应内容
 func (resp *Response) Content() []byte {

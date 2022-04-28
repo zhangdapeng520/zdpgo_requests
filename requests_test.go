@@ -2,7 +2,6 @@ package zdpgo_requests
 
 import (
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 	"testing"
 )
 
@@ -29,19 +28,19 @@ func TestRequests_basic(t *testing.T) {
 	println(resp.Text())
 
 	// 发送json数据
-	var jsonStr requests.Datas = map[string]string{
+	var jsonStr Datas = map[string]string{
 		"username": "zhangdapeng520",
 	}
-	var headers requests.Header = map[string]string{
+	var headers Header = map[string]string{
 		"Content-Type": "application/json",
 	}
-	resp, _ = requests.Post(url, true, jsonStr, headers)
+	resp, _ = Post(url, true, jsonStr, headers)
 	println(resp.Text())
 
 	// 权限校验
 	resp, _ = r.Get(
 		url,
-		requests.Auth{"zhangdapeng520", "password...."},
+		Auth{"zhangdapeng520", "password...."},
 	)
 	println(resp.Text())
 }
@@ -51,15 +50,15 @@ func TestRequests_header(t *testing.T) {
 	// 直接设置请求头
 	req := getRequests()
 	req.Request.Header.Set("accept-encoding", "gzip, deflate, br")
-	resp, _ := req.Get("http://localhost:8888", false, requests.Header{"Referer": "http://127.0.0.1:9999"})
+	resp, _ := req.Get("http://localhost:8888", false, Header{"Referer": "http://127.0.0.1:9999"})
 	println(resp.Text())
 
 	// 将请求头作为参数传递
-	h := requests.Header{
+	h := Header{
 		"Referer":         "http://localhost:8888",
 		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
 	}
-	h2 := requests.Header{
+	h2 := Header{
 		"Referer":         "http://localhost:8888",
 		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
 		"User-Agent":      "zdpgo_requests",
@@ -71,7 +70,7 @@ func TestRequests_header(t *testing.T) {
 // 测试设置查询参数
 func TestRequests_params(t *testing.T) {
 	req := getRequests()
-	p := requests.Params{
+	p := Params{
 		"name": "file",
 		"id":   "12345",
 	}

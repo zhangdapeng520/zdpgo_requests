@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// 发送GET请求
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 	url := "http://localhost:8888/payload/xxx"
 	resp, err := r.Get(url, true)
 	if err != nil {
@@ -23,19 +23,19 @@ func main() {
 	println(resp.StatusCode, resp.Text())
 
 	// 发送json数据
-	var jsonStr requests.Datas = map[string]string{
+	var jsonStr zdpgo_Datas = map[string]string{
 		"username": "zhangdapeng520",
 	}
-	var headers requests.Header = map[string]string{
+	var headers zdpgo_Header = map[string]string{
 		"Content-Type": "application/json",
 	}
-	resp, _ = requests.Post(url, true, jsonStr, headers)
+	resp, _ = Post(url, true, jsonStr, headers)
 	println(resp.StatusCode, resp.Text())
 
 	// 权限校验
 	resp, _ = r.Get(
 		url,
-		requests.Auth{"zhangdapeng520", "password...."},
+		zdpgo_Auth{"zhangdapeng520", "password...."},
 	)
 	println(resp.StatusCode, resp.Text())
 }

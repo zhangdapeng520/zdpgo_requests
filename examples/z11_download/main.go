@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 	imgUrl := "https://www.twle.cn/static/i/img1.jpg"
 	err := r.Download(imgUrl, "test1.jpg")
 	if err != nil {

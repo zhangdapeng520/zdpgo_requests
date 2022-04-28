@@ -2,19 +2,18 @@ package main
 
 import (
 	"github.com/zhangdapeng520/zdpgo_requests"
-	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
 func main() {
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 
 	// 发送JSON字符串
-	var jsonStr requests.JsonString = "{\"name\":\"requests_post_test\"}"
+	var jsonStr zdpgo_JsonString = "{\"name\":\"requests_post_test\"}"
 	resp, _ := r.Post("http://localhost:8888", jsonStr)
 	println(resp.Text())
 
 	// 发送map
-	var data requests.JsonData = make(map[string]interface{})
+	var data zdpgo_JsonData = make(map[string]interface{})
 	data["name"] = "root"
 	data["password"] = "root"
 	data["host"] = "localhost"

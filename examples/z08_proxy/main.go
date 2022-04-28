@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	req := zdpgo_requests.New()
+	req := zdpgo_New()
 
 	// 设置代理
 	err := req.SetProxy("http://localhost:8888")

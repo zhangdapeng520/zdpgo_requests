@@ -1,6 +1,8 @@
-package requests
+package zdpgo_requests
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // SetCookie 设置cookie
 func (req *Request) SetCookie(cookie *http.Cookie) {

@@ -1,4 +1,4 @@
-package requests
+package zdpgo_requests
 
 // Post 发送POST请求
 // @param originUrl 要请求的URL地址
@@ -13,7 +13,7 @@ func (req *Request) Post(originUrl string, ignoreParseError bool, args ...interf
 // @param ignoreParseError 是否忽略解析URL错误
 // @param args 要携带的参数
 func Post(url string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
-	req := Requests()
+	req := NewRequest()
 	resp, err = req.Post(url, ignoreParseError, args...)
 	return resp, err
 }

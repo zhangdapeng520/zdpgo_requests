@@ -1,4 +1,4 @@
-package requests
+package zdpgo_requests
 
 var VERSION string = "0.1.6"         // 版本编号
 type Header map[string]string        // 请求头类型

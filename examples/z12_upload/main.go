@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 	imgUrl := "http://localhost:8888/upload"
 	err := r.Upload(imgUrl, "test1.jpg")
 	if err != nil {

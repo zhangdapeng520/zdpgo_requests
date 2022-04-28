@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/zhangdapeng520/zdpgo_requests"
-	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
 )
 
 func main() {
 	// 发送GET请求
-	r := zdpgo_requests.New()
+	r := zdpgo_New()
 	host := "10.1.3.12:8888"
 	host = "10.1.4.2:8080"
 	baseUrl := "http://" + host + "/pte/api-v1/open-api/bas/task/add"
@@ -16,7 +15,7 @@ func main() {
 	url := baseUrl + query
 
 	// 数据
-	var data requests.JsonData = map[string]interface{}{
+	var data zdpgo_JsonData = map[string]interface{}{
 		"taskName":              "测试1",
 		"basStrategyTemplateId": 2,
 		"equipmentId":           22,

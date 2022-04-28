@@ -1,4 +1,4 @@
-package requests
+package zdpgo_requests
 
 import (
 	"bytes"
