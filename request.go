@@ -13,10 +13,17 @@ type Request struct {
 	Client  *http.Client   // 请求客户端
 	Debug   int            // 是否为DEBUG模式
 	Cookies []*http.Cookie // cookie
+	Config  *Config        // 配置对象
 }
 
 // NewRequest 创建请求对象
 func NewRequest() *Request {
+	return NewRequestWithConfig(Config{
+		Timeout:       30,
+		CheckRedirect: true,
+	})
+}
+func NewRequestWithConfig(config Config) *Request {
 	req := new(Request)
 	req.httpreq = &http.Request{
 		Method:     "GET",
@@ -32,6 +39,10 @@ func NewRequest() *Request {
 
 	// 设置客户端
 	req.Client = &http.Client{}
+	req.Config = &config
+	if config.Timeout != 0 {
+		req.Client.Timeout = time.Duration(config.Timeout) * time.Second
+	}
 
 	// 自动生成cookie
 	// cookiejar.New source code return jar, nil

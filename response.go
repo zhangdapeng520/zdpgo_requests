@@ -10,13 +10,19 @@ import (
 
 // Response 响应对象
 type Response struct {
-	R             *http.Response // 响应对象
-	content       []byte         // 响应内容
-	text          string         // 响应文本
-	req           *Request       // 请求对象
-	RawReqDetail  string         // 请求详情字符串
-	RawRespDetail string         // 响应详情字符串
-	StatusCode    int            // 状态码
+	R                *http.Response // 响应对象
+	content          []byte         // 响应内容
+	text             string         // 响应文本
+	req              *Request       // 请求对象
+	RawReqDetail     string         // 请求详情字符串
+	RawRespDetail    string         // 响应详情字符串
+	StatusCode       int            // 状态码
+	IsRedirect       bool           // 是否重定向了
+	RedirectUrl      string         // 重定向的的URL地址
+	StartTime        int            // 请求开始时间（纳秒）
+	EndTime          int            // 请求结束时间（纳秒）
+	SpendTime        int            // 请求消耗时间（纳秒）
+	SpendTimeSeconds int            // 请求消耗时间（秒）
 }
 
 // Content 获取响应内容

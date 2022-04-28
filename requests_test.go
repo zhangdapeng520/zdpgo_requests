@@ -74,6 +74,19 @@ func TestRequests_params(t *testing.T) {
 		"name": "file",
 		"id":   "12345",
 	}
-	resp, _ := req.Get("http://localhost:8888", false, p)
+	resp, _ := req.Get("http://localhost:8888", p)
 	fmt.Println(resp.Text())
+}
+
+func TestRequests_redirect(t *testing.T) {
+	req := getRequests()
+	url := "https://www.baidu.com/link?url=IIZcBDQ9FSkK8wRluFkNAxjf4a7VDwHH0kFqGazjEAFGRDdnxe0HqQRdSocksxbbrpMjo7PTBeGjgnmf0aYOqN7ld6dXDBVO_jMYS16Yuy7CI5M_TMysMLpmFhF4CEjGjXOEYvjL_r9Hgz2-4jwsoa"
+	resp, _ := req.Get(url)
+	fmt.Println(resp.StatusCode)
+	fmt.Println(resp.IsRedirect)
+	fmt.Println(resp.RedirectUrl)
+	fmt.Println(resp.StartTime)
+	fmt.Println(resp.EndTime)
+	fmt.Println(resp.SpendTime)
+	fmt.Println(resp.SpendTimeSeconds)
 }

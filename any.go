@@ -3,9 +3,11 @@ package zdpgo_requests
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // Any 发送任意请求
@@ -26,10 +28,6 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	var params []map[string]string // query查询参数
 	var datas []map[string]string  // form表单数据
 	var files []map[string]string  // 文件列表
-
-	// 重置cookie
-	// Client.Do can copy cookie from client.Jar to req.Header
-	//delete(req.httpreq.Header, "Cookie")
 
 	// 遍历请求参数
 	for _, arg := range args {
@@ -83,14 +81,25 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	req.httpreq.URL = URL
 	req.ClientSetCookies()
 
-	// 发送请求
+	// 构建请求对象
+	resp = &Response{
+		StartTime: int(time.Now().UnixNano()),
+	}
+	req.Client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+		if len(via) > 0 {
+			resp.IsRedirect = true
+			resp.RedirectUrl = req1.URL.String()
+		}
+		return http.ErrUseLastResponse
+	}
 	res, err := req.Client.Do(req.httpreq)
 	if err != nil {
 		return nil, err
 	}
-	resp = &Response{
-		StatusCode: res.StatusCode,
-	}
+	resp.StatusCode = res.StatusCode               // 响应状态码
+	resp.EndTime = int(time.Now().UnixNano())      // 请求结束时间
+	resp.SpendTime = resp.EndTime - resp.StartTime // 请求消耗时间（纳秒）
+	resp.SpendTimeSeconds = resp.SpendTime / 1000 / 1000 / 1000
 
 	// 记录请求详情
 	requestDump, err := httputil.DumpRequest(res.Request, true)
