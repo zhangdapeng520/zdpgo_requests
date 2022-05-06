@@ -55,3 +55,29 @@ func TestRequests_UploadFsToString(t *testing.T) {
 	}
 	t.Log(respBytes)
 }
+
+func TestRequests_UploadByBytes(t *testing.T) {
+	targetUrl := "http://localhost:8888/upload"
+	testData := []struct {
+		FileName string
+		Content  string
+	}{
+		{"a.txt",
+			"aaa"},
+		{"b.txt",
+			"bbb"},
+		{"c.txt",
+			"ccc"},
+	}
+
+	r := getRequests()
+
+	for _, data := range testData {
+		resp, err := r.UploadByBytes(targetUrl, "file", data.FileName, []byte(data.Content))
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(resp.StatusCode)
+		t.Log(resp.Body)
+	}
+}

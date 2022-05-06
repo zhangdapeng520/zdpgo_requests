@@ -7,30 +7,29 @@ import (
 
 func main() {
 	// 发送GET请求
-	r := zdpgo_New()
-	host := "10.1.3.12:8888"
-	host = "10.1.4.2:8080"
-	baseUrl := "http://" + host + "/pte/api-v1/open-api/bas/task/add"
+	r := zdpgo_requests.New()
+	host := "10.1.4.2:8080"
+	baseUrl := "http://" + host + "/pte/api-v1/bas/task/add"
 	query := ""
 	url := baseUrl + query
 
 	// 数据
-	var data zdpgo_JsonData = map[string]interface{}{
-		"taskName":              "测试1",
+	var data zdpgo_requests.JsonData = map[string]interface{}{
+		"taskName":              "测试任务1",
 		"basStrategyTemplateId": 2,
-		"equipmentId":           22,
+		"equipmentIdList":       []int{27},
 		"timeMode":              1,
-		"attackSevNodeId":       6,
-		"verifyRulesWafType":    "sev_assistant",
-	}
+		"xmazeNodeId":           "rOiRLKpTkmjjMddz",
+		"targetType":            0,
+		"taskPattern":           1,
+		"simulateTargetIds":     []int{6},
+		"responseTimeout":       12000,
+		"agentHelperIdList":     []int{7}}
 
 	// 发送请求
 	resp, err := r.PostIgnoreParseError(url, data)
 	if err != nil {
 		fmt.Println("错误2", err)
-	} else {
-		println(resp.Text())
-		println("请求详情：\n", resp.RawReqDetail)
-		println("响应详情：\n", resp.RawRespDetail)
 	}
+	fmt.Println(resp.Text())
 }

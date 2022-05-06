@@ -48,6 +48,36 @@ func (r *Requests) UploadToResponse(targetUrl string, formName string, filePath 
 	return resp, nil
 }
 
+// UploadByBytes 根据字节数组上传文件
+func (r *Requests) UploadByBytes(targetUrl string, formName string, filePath string, content []byte) (*http.Response,
+	error) {
+	bodyBuf := &bytes.Buffer{}
+	bodyWriter := multipart.NewWriter(bodyBuf)
+
+	// 创建文件
+	fileWriter, err := bodyWriter.CreateFormFile(formName, filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	// 写入数据
+	_, err = fileWriter.Write(content)
+	if err != nil {
+		return nil, err
+	}
+
+	// 表单类型
+	contentType := bodyWriter.FormDataContentType()
+	bodyWriter.Close()
+
+	// 获取响应
+	resp, err := http.Post(targetUrl, contentType, bodyBuf)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Upload 上传文件
 // @param targetUrl 目标地址
 // @param filePath 上传文件的路径
