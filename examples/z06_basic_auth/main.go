@@ -5,10 +5,10 @@ import (
 )
 
 func main() {
-	req := zdpgo_New()
+	req := zdpgo_requests.New()
 	resp, _ := req.Get(
 		"http://localhost:8080/admin/secrets",
-		zdpgo_Auth{"zhangdapeng", "zhangdapeng"},
+		zdpgo_requests.Auth{"zhangdapeng", "zhangdapeng"},
 	)
 	println(resp.Text())
 }

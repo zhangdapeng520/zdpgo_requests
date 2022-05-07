@@ -49,7 +49,7 @@ func (r *Requests) UploadToResponse(targetUrl string, formName string, filePath 
 }
 
 // UploadByBytes 根据字节数组上传文件
-func (r *Requests) UploadByBytes(targetUrl string, formName string, filePath string, content []byte) (*http.Response,
+func (r *Requests) UploadByBytes(targetUrl string, formName string, filePath string, content []byte) ([]byte,
 	error) {
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
@@ -75,7 +75,14 @@ func (r *Requests) UploadByBytes(targetUrl string, formName string, filePath str
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+
+	// 读取响应体数据
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return respBody, nil
 }
 
 // Upload 上传文件

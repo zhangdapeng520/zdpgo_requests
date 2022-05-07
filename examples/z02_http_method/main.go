@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	r := zdpgo_New()
+	r := zdpgo_requests.New()
 	targetUrl := "http://localhost:8888"
 
 	// 发送GET请求

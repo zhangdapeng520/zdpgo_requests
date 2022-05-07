@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_requests/core/requests"
+	"github.com/zhangdapeng520/zdpgo_requests"
 )
 
 func main() {
-	req := Requests()
+	req := zdpgo_requests.New()
 	resp, _ := req.Get("http://localhost:8888", false)
 	coo := resp.Cookies()
 	println("********cookies*******")

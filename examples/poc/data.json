@@ -1,0 +1,36 @@
+{
+  "taskName": "测试waf任务4",
+  "basStrategyTemplateId": 8,
+  "equipmentIdList": [
+    37
+  ],
+  "timeMode": 1,
+  "xmazeNodeId": "cidWwKsKhtiRRdQm",
+  "targetType": 1,
+  "targets":"http://bas.x-check.cn/",
+  "taskPattern": 1,
+  "simulateTargetIds": [
+    6
+  ],
+  "responseTimeout": 12000,
+  "agentHelperIdList": [
+    7
+  ],
+  "smtp":
+  {
+    "host":"",
+    "port":25,
+    "username": "",
+    "password": "",
+    "ssl": false
+  }
+,
+  "imap":
+  {
+    "host":"",
+    "port":25,
+    "username": "",
+    "password": "",
+    "ssl": false
+  }
+}

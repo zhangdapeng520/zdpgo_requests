@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	req := zdpgo_New()
-	p := zdpgo_Params{
+	req := zdpgo_requests.New()
+	p := zdpgo_requests.Params{
 		"name": "file",
 		"id":   "12345",
 	}

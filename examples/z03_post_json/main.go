@@ -5,15 +5,15 @@ import (
 )
 
 func main() {
-	r := zdpgo_New()
+	r := zdpgo_requests.New()
 
 	// 发送JSON字符串
-	var jsonStr zdpgo_JsonString = "{\"name\":\"requests_post_test\"}"
+	var jsonStr zdpgo_requests.JsonString = "{\"name\":\"requests_post_test\"}"
 	resp, _ := r.Post("http://localhost:8888", jsonStr)
 	println(resp.Text())
 
 	// 发送map
-	var data zdpgo_JsonData = make(map[string]interface{})
+	var data zdpgo_requests.JsonData = make(map[string]interface{})
 	data["name"] = "root"
 	data["password"] = "root"
 	data["host"] = "localhost"
