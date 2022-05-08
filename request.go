@@ -35,7 +35,7 @@ func NewRequestWithConfig(config Config) *Request {
 
 	// 设置请求头
 	req.Header = &req.httpreq.Header
-	req.httpreq.Header.Set("User-Agent", "ZDPGo-Requests "+VERSION)
+	req.httpreq.Header.Set("User-Agent", "ZDPGo-Requests")
 
 	// 设置客户端
 	req.Client = &http.Client{}

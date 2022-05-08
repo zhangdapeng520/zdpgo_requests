@@ -11,3 +11,8 @@ func (r *Requests) PostIgnoreParseError(url string, args ...interface{}) (*Respo
 	resp, err := r.Request.Post(url, true, args...)
 	return resp, err
 }
+
+// PostJsonWithTimeout 发送JSON请求并携带JSON数据
+func (r *Requests) PostJsonWithTimeout(targetUrl string, body map[string]interface{}, timeout int) (result string, err error) {
+	return r.AnyJsonWithTimeout("post", targetUrl, body, timeout)
+}

@@ -2,6 +2,7 @@ package zdpgo_requests
 
 import (
 	"embed"
+	"fmt"
 	"testing"
 )
 
@@ -77,7 +78,6 @@ func TestRequests_UploadByBytes(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		t.Log(resp.StatusCode)
-		t.Log(resp.Body)
+		fmt.Println(resp)
 	}
 }

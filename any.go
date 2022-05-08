@@ -1,7 +1,9 @@
 package zdpgo_requests
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -130,4 +132,36 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 
 	// 返回响应
 	return resp, nil
+}
+
+// AnyJsonWithTimeout 发送任意请求并携带JSON数据
+func (r *Requests) AnyJsonWithTimeout(method string, targetUrl string, body map[string]interface{},
+	timeout int) (result string,
+	err error) {
+
+	// 准备json字符串
+	jsonStr, err := json.Marshal(body)
+	if err != nil {
+		return
+	}
+
+	// 准备请求对象
+	req, err := http.NewRequest(strings.ToUpper(method), targetUrl, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "ZDPGo-Requests")
+
+	// 准备客户端
+	cli := http.Client{
+		Timeout: time.Millisecond * time.Duration(timeout), // 超时时间
+	}
+	resp, err := cli.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// 读取结果
+	b, _ := io.ReadAll(resp.Body)
+	result = string(b)
+	return
 }
