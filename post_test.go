@@ -18,6 +18,6 @@ func TestRequests_PostJsonWithTimeout(t *testing.T) {
 	data := make(map[string]interface{})
 	data["a"] = 111
 	data["b"] = 222.222
-	result, err := r.PostJsonWithTimeout("http://localhost:8889/payload", data, 1000)
+	result, err := r.PostJsonWithTimeout("http://localhost:8889/proxy", data, 60*60*3)
 	fmt.Println(result, err)
 }

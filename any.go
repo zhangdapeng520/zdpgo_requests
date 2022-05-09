@@ -152,7 +152,7 @@ func (r *Requests) AnyJsonWithTimeout(method string, targetUrl string, body map[
 
 	// 准备客户端
 	cli := http.Client{
-		Timeout: time.Millisecond * time.Duration(timeout), // 超时时间
+		Timeout: time.Second * time.Duration(timeout), // 超时时间
 	}
 	resp, err := cli.Do(req)
 	if err != nil {
