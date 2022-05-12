@@ -6,7 +6,9 @@ import (
 )
 
 func getRequests() *Requests {
-	return New()
+	return NewWithConfig(Config{
+		Debug: true,
+	})
 }
 
 // 测试基本使用
