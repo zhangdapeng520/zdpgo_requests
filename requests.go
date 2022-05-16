@@ -39,6 +39,12 @@ func NewWithConfig(config Config) *Requests {
 	r.Log = zdpgo_log.NewWithConfig(logConfig)
 
 	// 配置
+	if config.ContentType == "" {
+		config.ContentType = "multipart/form-data"
+	}
+	if config.UserAgent == "" {
+		config.UserAgent = "ZDP-Go-Requests"
+	}
 	r.Config = &config
 
 	// 实例化json对象

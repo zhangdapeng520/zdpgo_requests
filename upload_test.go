@@ -8,7 +8,7 @@ import (
 
 // 测试文件上传
 func TestRequests_Upload(t *testing.T) {
-	targetUrl := "http://localhost:8888/upload"
+	targetUrl := "http://localhost:3333/upload"
 	filename := "README.md"
 
 	r := getRequests()

@@ -15,37 +15,62 @@ import (
 // @param formName 文件表单名称
 // @param filePath 上传文件的路径
 // @return 响应对象，错误对象
-func (r *Requests) UploadToResponse(targetUrl string, formName string, filePath string) (*http.Response, error) {
+func (r *Requests) UploadToResponse(targetUrl string, formName string, filePath string) (resp *http.Response,
+	err error) {
+	var (
+		fileWriter io.Writer
+	)
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 
 	// 关键的一步操作
-	fileWriter, err := bodyWriter.CreateFormFile(formName, filePath)
+	fileWriter, err = bodyWriter.CreateFormFile(formName, filePath)
 	if err != nil {
-		return nil, err
+		r.Log.Error("创建表单文件对象失败", "error", err, "formName", formName, "filePath", filePath)
+		return
 	}
 
 	// 打开文件句柄操作
 	fh, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		r.Log.Error("打开文件失败", "error", err, "filePath", filePath)
+		return
 	}
 	defer fh.Close()
 
-	// iocopy
+	// 复制文件
 	_, err = io.Copy(fileWriter, fh)
 	if err != nil {
-		return nil, err
+		r.Log.Error("复制文件失败", "error", err)
+		return
 	}
 
+	// 获取文件类型
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 
-	resp, err := http.Post(targetUrl, contentType, bodyBuf)
+	// 创建请求对象
+	req, err := r.GetHttpRequest("POST", targetUrl, bodyBuf)
 	if err != nil {
-		return nil, err
+		r.Log.Error("获取HTTP请求对象失败", "error", err)
+		return
 	}
-	return resp, nil
+
+	// 设置请求头
+	req.Header.Set("Content-Type", contentType)
+
+	// 创建客户端对象
+	client := r.GetHttpClient()
+
+	// 使用客户端发送请求
+	resp, err = client.Do(req)
+	if err != nil {
+		r.Log.Error("使用客户端发送请求失败", "error", err)
+		return
+	}
+
+	// 返回结果
+	return
 }
 
 // UploadByBytes 根据字节数组上传文件
