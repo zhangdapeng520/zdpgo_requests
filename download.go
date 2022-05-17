@@ -118,7 +118,7 @@ func (r *Requests) DownloadToTmp(urlPath string) string {
 	if !r.File.IsExists("tmp") {
 		r.File.CreateMultiDir("tmp")
 	}
-	tmpFileName := fmt.Sprintf("%s%s", r.Random.Str.Str(32), suffix)
+	tmpFileName := fmt.Sprintf("%s%s", r.Random.Str(32), suffix)
 	r.File.CreateFile(path.Join("tmp", tmpFileName), string(data))
 
 	// 返回临时文件名
