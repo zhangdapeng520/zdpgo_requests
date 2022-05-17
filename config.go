@@ -13,6 +13,7 @@ type Config struct {
 	LogFilePath   string `yaml:"log_file_path" json:"log_file_path"`   // 日志存放路径
 	Timeout       int    `json:"timeout" yaml:"timeout"`               // 请求超时时间（秒）
 	CheckRedirect bool   `json:"check_redirect" yaml:"check_redirect"` // 是否检查重定向
+	CheckHttps    bool   `json:"check_https" yaml:"check_https"`       // 是否检查HTTPS
 	ContentType   string `yaml:"content_type" json:"content_type"`     // 内容类型，默认"multipart/form-data"
 	UserAgent     string `yaml:"user_agent" json:"user_agent"`         // 用户代理，默认"ZDP-Go-Requests"
 }

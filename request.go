@@ -1,6 +1,7 @@
 package zdpgo_requests
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -37,8 +38,15 @@ func NewRequestWithConfig(config Config) *Request {
 	req.Header = &req.httpReq.Header
 	req.httpReq.Header.Set("User-Agent", "ZDPGo-Requests")
 
+	// 是否跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !config.CheckHttps},
+	}
+
 	// 设置客户端
-	req.Client = &http.Client{}
+	req.Client = &http.Client{
+		Transport: tr,
+	}
 	req.Config = &config
 	if config.Timeout != 0 {
 		req.Client.Timeout = time.Duration(config.Timeout) * time.Second
