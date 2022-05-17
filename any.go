@@ -16,12 +16,17 @@ import (
 // @param originUrl 要请求的URL地址
 // @param args 请求携带的参数
 func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response, err error) {
+	var (
+		jsonStr      string // json字符串
+		jsonStrBytes []byte // json字符串字节数组
+	)
+
 	// 请求的方法
-	req.httpreq.Method = strings.ToUpper(method)
+	req.httpReq.Method = strings.ToUpper(method)
 
 	// 清空Header
-	for k, _ := range req.httpreq.Header {
-		delete(req.httpreq.Header, k)
+	for k, _ := range req.httpReq.Header {
+		delete(req.httpReq.Header, k)
 	}
 
 	// 设置默认的请求头
@@ -33,7 +38,7 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 
 	// 遍历请求参数
 	for _, arg := range args {
-		switch a := arg.(type) {
+		switch a := arg.(type) { // 已经自动转换了真实的类型
 		case Header: // 设置请求头
 			for k, v := range a {
 				req.Header.Set(k, v)
@@ -44,21 +49,21 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 			datas = append(datas, a)
 		case Files: //	设置文件列表
 			files = append(files, a)
-		case Auth: //	设置权限校验
-			// a{username,password}
-			req.httpreq.SetBasicAuth(a[0], a[1])
+		case BaseAuth: //	设置权限校验
+			req.httpReq.SetBasicAuth(a.Username, a.Password)
 		case map[string]string: // 如果是map，默认当data数据处理
 			datas = append(datas, a)
 		case JsonData: // 如果是JsonData结构体类型
-			jsonStr, err := json.Marshal(arg.(JsonData))
+			jsonStrBytes, err = json.Marshal(arg.(JsonData))
 			if err != nil {
+				Log.Error("解析Json数据失败", "error", err)
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/json")
-			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(string(jsonStr))))
+			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(string(jsonStrBytes))))
 		case JsonString: //	如果是Json字符串
 			req.Header.Set("Content-Type", "application/json")
-			jsonStr := string(arg.(JsonString))
+			jsonStr = string(arg.(JsonString))
 			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(jsonStr)))
 		case string: //	如果是字符串，则当成是raw纯文本数据
 			req.setBodyRawBytes(ioutil.NopCloser(strings.NewReader(arg.(string))))
@@ -78,9 +83,10 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	// 准备执行请求
 	URL, err := url.Parse(destUrl)
 	if err != nil {
+		Log.Error("解析目标地址失败", "error", err, "destUrl", destUrl)
 		return nil, err
 	}
-	req.httpreq.URL = URL
+	req.httpReq.URL = URL
 	req.ClientSetCookies()
 
 	// 构建请求对象
@@ -94,8 +100,9 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 		}
 		return http.ErrUseLastResponse
 	}
-	res, err := req.Client.Do(req.httpreq)
+	res, err := req.Client.Do(req.httpReq)
 	if err != nil {
+		Log.Error("发送请求失败", "error", err)
 		return nil, err
 	}
 	resp.StatusCode = res.StatusCode               // 响应状态码
@@ -118,9 +125,9 @@ func (req *Request) Any(method, originUrl string, ignoreParseError bool, args ..
 	resp.RawRespDetail = string(responseDump)
 
 	// 请求请求内容
-	req.httpreq.Body = nil        // 清空请求体
-	req.httpreq.GetBody = nil     // 清空get参数
-	req.httpreq.ContentLength = 0 // 清空内容长度
+	req.httpReq.Body = nil        // 清空请求体
+	req.httpReq.GetBody = nil     // 清空get参数
+	req.httpReq.ContentLength = 0 // 清空内容长度
 
 	// 解析响应
 	resp.R = res

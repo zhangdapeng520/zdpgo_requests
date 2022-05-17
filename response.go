@@ -52,9 +52,17 @@ func (resp *Response) Content() []byte {
 
 // Text 获取响应文本
 func (resp *Response) Text() string {
+	// 没有响应
+	if resp == nil {
+		return ""
+	}
+
+	// 获取响应
 	if resp.content == nil {
 		resp.Content()
 	}
+
+	// 获取响应文本
 	resp.text = string(resp.content)
 	return resp.text
 }

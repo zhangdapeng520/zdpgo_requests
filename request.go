@@ -8,7 +8,7 @@ import (
 
 // Request 请求对象
 type Request struct {
-	httpreq *http.Request  // http请求对象
+	httpReq *http.Request  // http请求对象
 	Header  *http.Header   // 请求头
 	Client  *http.Client   // 请求客户端
 	Debug   int            // 是否为DEBUG模式
@@ -25,7 +25,7 @@ func NewRequest() *Request {
 }
 func NewRequestWithConfig(config Config) *Request {
 	req := new(Request)
-	req.httpreq = &http.Request{
+	req.httpReq = &http.Request{
 		Method:     "GET",
 		Header:     make(http.Header),
 		Proto:      "HTTP/1.1",
@@ -34,8 +34,8 @@ func NewRequestWithConfig(config Config) *Request {
 	}
 
 	// 设置请求头
-	req.Header = &req.httpreq.Header
-	req.httpreq.Header.Set("User-Agent", "ZDPGo-Requests")
+	req.Header = &req.httpReq.Header
+	req.httpReq.Header.Set("User-Agent", "ZDPGo-Requests")
 
 	// 设置客户端
 	req.Client = &http.Client{}
@@ -60,5 +60,5 @@ func (req *Request) SetTimeout(n time.Duration) {
 
 // Close 关闭连接
 func (req *Request) Close() {
-	req.httpreq.Close = true
+	req.httpReq.Close = true
 }

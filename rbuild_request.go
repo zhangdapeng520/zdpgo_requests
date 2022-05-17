@@ -42,8 +42,8 @@ func (req *Request) buildFilesAndForms(files []map[string]string, datas []map[st
 	w.Close()
 
 	// 设置文件头："Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
-	req.httpreq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
-	req.httpreq.ContentLength = int64(b.Len())
+	req.httpReq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
+	req.httpReq.ContentLength = int64(b.Len())
 	req.Header.Set("Content-Type", w.FormDataContentType())
 }
 

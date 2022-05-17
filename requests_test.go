@@ -42,7 +42,7 @@ func TestRequests_basic(t *testing.T) {
 	// 权限校验
 	resp, _ = r.Get(
 		url,
-		Auth{"zhangdapeng520", "password...."},
+		BaseAuth{"zhangdapeng520", "password...."},
 	)
 	println(resp.Text())
 }

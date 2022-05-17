@@ -28,15 +28,7 @@ func NewWithConfig(config Config) *Requests {
 	if config.LogFilePath == "" {
 		config.LogFilePath = "logs/zdpgo/zdpgo_requests.log"
 	}
-	logConfig := zdpgo_log.Config{
-		Debug:       config.Debug,
-		OpenJsonLog: true,
-		LogFilePath: config.LogFilePath,
-	}
-	if config.Debug {
-		logConfig.IsShowConsole = true
-	}
-	r.Log = zdpgo_log.NewWithConfig(logConfig)
+	r.Log = zdpgo_log.NewWithDebug(config.Debug, config.LogFilePath)
 
 	// 配置
 	if config.ContentType == "" {

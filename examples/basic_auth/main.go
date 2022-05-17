@@ -6,9 +6,9 @@ import (
 
 func main() {
 	req := zdpgo_requests.New()
-	resp, _ := req.Get(
-		"http://localhost:8080/admin/secrets",
-		zdpgo_requests.Auth{"zhangdapeng", "zhangdapeng"},
+	resp, _ := req.Post(
+		"http://localhost:3333/admin",
+		zdpgo_requests.BaseAuth{Username: "zhangdapeng", Password: "zhangdapeng"},
 	)
 	println(resp.Text())
 }
