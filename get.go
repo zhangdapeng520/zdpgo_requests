@@ -1,29 +1,19 @@
 package zdpgo_requests
 
 import (
-	"io"
+	"crypto/tls"
 	"net/http"
-	"strings"
+	"net/http/cookiejar"
+	"time"
 )
 
-// Get 发送GET请求
-func (r *Requests) Get(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Request.Get(url, false, args...)
-	return resp, err
-}
-
-// GetIgnoreParseError 发送GET请求，且忽略解析URL时遇到的错误
-func (r *Requests) GetIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Request.Get(url, true, args...)
-	return resp, err
-}
-
-// GetHttpRequest 获取HTTP请求对象
-func (r *Requests) GetHttpRequest(reqMethod, reqUrl string, requestBody io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest(strings.ToUpper(reqMethod), reqUrl, requestBody)
-	if err != nil {
-		r.Log.Error("创建HTTP请求对象失败", "error", err)
-		return
+func (r *Requests) GetHttpRequest() (req *http.Request) {
+	req = &http.Request{
+		Method:     "GET",
+		Header:     make(http.Header),
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
 	}
 
 	// 设置请求头
@@ -35,7 +25,29 @@ func (r *Requests) GetHttpRequest(reqMethod, reqUrl string, requestBody io.Reade
 }
 
 // GetHttpClient 获取HTTP请求的客户端
-func (r *Requests) GetHttpClient() *http.Client {
-	var httpClient = &http.Client{}
-	return httpClient
+func (r *Requests) GetHttpClient() (httpClient *http.Client) {
+	// 是否跳过证书验证
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps},
+	}
+
+	// 创建客户端
+	httpClient = &http.Client{
+		Transport: tr,
+	}
+
+	// 超时控制
+	if r.Config.Timeout != 0 {
+		httpClient.Timeout = time.Duration(r.Config.Timeout) * time.Second
+	}
+
+	// 自动生成cookie
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		r.Log.Error("创建cookie失败", "error", err)
+	}
+	httpClient.Jar = jar
+
+	// 返回
+	return
 }

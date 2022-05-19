@@ -24,6 +24,7 @@ func NewRequest() *Request {
 		CheckRedirect: true,
 	})
 }
+
 func NewRequestWithConfig(config Config) *Request {
 	req := new(Request)
 	req.httpReq = &http.Request{
@@ -37,6 +38,7 @@ func NewRequestWithConfig(config Config) *Request {
 	// 设置请求头
 	req.Header = &req.httpReq.Header
 	req.httpReq.Header.Set("User-Agent", "ZDPGo-Requests")
+	req.Config = &config
 
 	// 是否跳过证书验证
 	tr := &http.Transport{
@@ -47,13 +49,11 @@ func NewRequestWithConfig(config Config) *Request {
 	req.Client = &http.Client{
 		Transport: tr,
 	}
-	req.Config = &config
 	if config.Timeout != 0 {
 		req.Client.Timeout = time.Duration(config.Timeout) * time.Second
 	}
 
 	// 自动生成cookie
-	// cookiejar.New source code return jar, nil
 	jar, _ := cookiejar.New(nil)
 	req.Client.Jar = jar
 

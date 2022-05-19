@@ -50,7 +50,8 @@ func (r *Requests) UploadToResponse(targetUrl string, formName string, filePath 
 	bodyWriter.Close()
 
 	// 创建请求对象
-	req, err := r.GetHttpRequest("POST", targetUrl, bodyBuf)
+	var req *http.Request
+	//req, err := r.GetHttpRequest("POST", targetUrl, bodyBuf)
 	if err != nil {
 		r.Log.Error("获取HTTP请求对象失败", "error", err)
 		return

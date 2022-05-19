@@ -14,6 +14,7 @@ type Response struct {
 	content          []byte         // 响应内容
 	text             string         // 响应文本
 	req              *Request       // 请求对象
+	reqs             *Requests      // 请求对象
 	RawReqDetail     string         // 请求详情字符串
 	RawRespDetail    string         // 响应详情字符串
 	StatusCode       int            // 状态码

@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+/*
+@Time : 2022/5/19 14:55
+@Author : 张大鹏
+@File : method_test.go
+@Software: Goland2021.3.1
+@Description: method相关测试
+*/
+
 // 测试各种HTTP请求方法
 func TestRequests_Get(t *testing.T) {
 	r := getRequests()
@@ -42,4 +50,24 @@ func TestRequests_GetHttps(t *testing.T) {
 		fmt.Println("请求数据失败", err)
 	}
 	println(resp.Text())
+}
+
+// 测试任意方法
+func TestRequests_Any(t *testing.T) {
+	r := getRequests()
+	var (
+		resp *Response
+		err  error
+		url  = "http://localhost:8889/payload/"
+	)
+	resp, err = r.Any("get", url, true)
+	println(resp.Text(), err)
+	resp, err = r.Any("post", url, true)
+	println(resp.Text(), err)
+	resp, err = r.Any("put", url, true)
+	println(resp.Text(), err)
+	resp, err = r.Any("delete", url, true)
+	println(resp.Text(), err)
+	resp, err = r.Any("patch", url, true)
+	println(resp.Text(), err)
 }

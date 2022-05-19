@@ -33,16 +33,21 @@ func TestRequests_UploadToBytes(t *testing.T) {
 //go:embed examples/test/*
 var fsObj embed.FS
 
+// 测试上传嵌入式系统
 func TestRequests_UploadFsToBytes(t *testing.T) {
-	targetUrl := "http://localhost:8888/upload"
-	filename := "examples/test/main.go"
-
-	r := getRequests()
-	respBytes, err := r.UploadFsToBytes(targetUrl, fsObj, "file", filename)
-	if err != nil {
-		t.Error(err)
+	targetUrl := "http://localhost:3333/upload"
+	files := []string{
+		"examples/test/main.go",
+		"examples/basic_auth/test.txt",
 	}
-	t.Log(string(respBytes))
+	r := getRequests()
+	for _, filename := range files {
+		respBytes, err := r.UploadFsToBytes(targetUrl, fsObj, "file", filename)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(respBytes))
+	}
 }
 
 func TestRequests_UploadFsToString(t *testing.T) {
