@@ -1,6 +1,7 @@
 package zdpgo_requests
 
 import (
+	"embed"
 	"fmt"
 	"testing"
 )
@@ -12,6 +13,9 @@ import (
 @Software: Goland2021.3.1
 @Description: method相关测试
 */
+
+//go:embed tmp
+var fsObj embed.FS
 
 // 测试各种HTTP请求方法
 func TestRequests_Get(t *testing.T) {
@@ -60,6 +64,8 @@ func TestRequests_Any(t *testing.T) {
 		err  error
 		url  = "http://localhost:8889/payload/"
 	)
+
+	// any方法
 	resp, err = r.Any("get", url, true)
 	println(resp.Text(), err)
 	resp, err = r.Any("post", url, true)
@@ -69,5 +75,52 @@ func TestRequests_Any(t *testing.T) {
 	resp, err = r.Any("delete", url, true)
 	println(resp.Text(), err)
 	resp, err = r.Any("patch", url, true)
+	println(resp.Text(), err)
+
+	// 特定方法
+	resp, err = r.Get(url)
+	println(resp.Text(), err)
+	resp, err = r.Post(url)
+	println(resp.Text(), err)
+	resp, err = r.Put(url)
+	println(resp.Text(), err)
+	resp, err = r.Delete(url)
+	println(resp.Text(), err)
+	resp, err = r.Patch(url)
+	println(resp.Text(), err)
+}
+
+func TestRequests_Upload1(t *testing.T) {
+	r := getRequests()
+	url := "http://localhost:8889/upload"
+	// 上传文件
+	r.Files = append(r.Files, map[string]string{
+		"file": "tmp/img1.jpg",
+	})
+	fmt.Println("================")
+	resp, err := r.Post(url)
+	println(resp.Text(), err)
+}
+
+// 测试上传嵌入文件系统
+func TestRequests_UploadFS(t *testing.T) {
+	r := getRequests()
+
+	// 设置代理
+	r.SetProxy("http://localhost:8080")
+
+	url := "http://localhost:8889/upload"
+
+	// 上传文件
+	r.Files = append(r.Files, map[string]string{
+		"file": "tmp/img1.jpg",
+	})
+
+	// 指定使用嵌入文件系统
+	r.IsFs = true
+	r.Fs = fsObj
+
+	// 执行上传
+	resp, err := r.Post(url)
 	println(resp.Text(), err)
 }

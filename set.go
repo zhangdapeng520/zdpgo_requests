@@ -2,10 +2,13 @@ package zdpgo_requests
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -40,42 +43,87 @@ func (r *Requests) SetBodyByBytes(data []byte) {
 }
 
 // SetFilesAndForms 设置上传文件和表单
-// @param files 要上传的文件列表
-// @param datas 要上传的表单数据
-func (r *Requests) SetFilesAndForms(files []map[string]string, datas []map[string]string) {
-	// 处理文件
-	var b bytes.Buffer
+func (r *Requests) SetFilesAndForms() {
+	if len(r.Files) == 0 && len(r.Forms) == 0 {
+		return
+	}
 
-	// 创建表单对象
-	w := multipart.NewWriter(&b)
+	var b bytes.Buffer           // 处理文件
+	w := multipart.NewWriter(&b) // 创建表单对象
 
 	// 遍历文件列表
-	for _, file := range files {
-		for k, v := range file {
-			// 创建文件表单
-			part, err := w.CreateFormFile(k, v)
-			if err != nil {
-				r.Log.Error("处理要上传的文件失败", "error", err)
+	if len(r.Files) > 0 {
+		tmpDir := r.Config.FsTmpDir
+
+		// 如果使用了嵌入文件系统，需要将文件先转移到临时目录
+		if r.IsFs {
+			// 不存在则创建文件
+			if !r.Exists(tmpDir) {
+				err := os.Mkdir(tmpDir, 0644)
+				if err != nil {
+					r.Log.Error("创建临时目录失败", "error", err)
+				}
 			}
 
-			// 复制文件到请求体
-			fileObj := openFile(v)
-			_, err = io.Copy(part, fileObj)
-			if err != nil {
-				r.Log.Error("复制文件到上次对象失败", "error", err)
+			// 保存文件到临时目录
+			for _, file := range r.Files {
+				for _, v := range file {
+					fileName := filepath.Base(v)
+					fh, err1 := r.Fs.ReadFile(v)
+					if err1 != nil {
+						r.Log.Error("读取文件失败", "error", err1, "fileName", v)
+						continue
+					}
+					err := ioutil.WriteFile(fmt.Sprintf("%s/%s", tmpDir, fileName), fh, 0644)
+					if err != nil {
+						r.Log.Error("保存临时文件失败", "error", err, "fileName", v)
+						continue
+					}
+				}
+			}
+
+		}
+
+		for _, file := range r.Files {
+			for k, v := range file {
+				// 如果使用了FS嵌入文件系统，从临时目录读
+				if r.IsFs {
+					fileName := filepath.Base(v)
+					v = fmt.Sprintf("%s/%s", tmpDir, fileName)
+				}
+
+				// 创建文件表单
+				part, err := w.CreateFormFile(k, v)
+				if err != nil {
+					r.Log.Error("处理要上传的文件失败", "error", err)
+				}
+
+				// 复制文件到请求体
+				fileObj := openFile(v)
+				_, err = io.Copy(part, fileObj)
+				if err != nil {
+					r.Log.Error("复制文件到上次对象失败", "error", err)
+				}
+				err = fileObj.Close()
+				if err != nil {
+					r.Log.Error("关闭文件对象失败", "error", err)
+				}
 			}
 		}
 	}
 
 	// 添加表单数据
-	for _, data := range datas {
-		for k, v := range data {
-			err := w.WriteField(k, v)
-			if err != nil {
-				r.Log.Error("添加表单数据失败", "error", err, "key", k, "value", v)
+	if len(r.Forms) > 0 {
+		for _, data := range r.Forms {
+			for k, v := range data {
+				err := w.WriteField(k, v)
+				if err != nil {
+					r.Log.Error("添加表单数据失败", "error", err, "key", k, "value", v)
+				}
 			}
 		}
 	}
+
 	err := w.Close()
 	if err != nil {
 		r.Log.Error("关闭表单对象失败", "error", err)
@@ -85,7 +133,7 @@ func (r *Requests) SetFilesAndForms(files []map[string]string, datas []map[strin
 	// 设置文件头："Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
 	r.HttpReq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
 	r.HttpReq.ContentLength = int64(b.Len())
-	r.Header.Set("Content-Type", w.FormDataContentType())
+	r.HttpReq.Header.Set("Content-Type", w.FormDataContentType())
 }
 
 // SetForms 设置表单数据
@@ -108,5 +156,4 @@ func (r *Requests) SetCookies() {
 		// 清除请求对象的cookie
 		r.Cookies = r.Cookies[0:0]
 	}
-
 }

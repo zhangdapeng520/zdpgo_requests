@@ -36,7 +36,7 @@ func TestRequests_basic(t *testing.T) {
 	var headers Header = map[string]string{
 		"Content-Type": "application/json",
 	}
-	resp, _ = Post(url, true, jsonStr, headers)
+	resp, _ = r.Post(url, true, jsonStr, headers)
 	println(resp.Text())
 
 	// 权限校验
@@ -51,7 +51,7 @@ func TestRequests_basic(t *testing.T) {
 func TestRequests_header(t *testing.T) {
 	// 直接设置请求头
 	req := getRequests()
-	req.Request.Header.Set("accept-encoding", "gzip, deflate, br")
+	req.Header.Set("accept-encoding", "gzip, deflate, br")
 	resp, _ := req.Get("http://localhost:8888", false, Header{"Referer": "http://127.0.0.1:9999"})
 	println(resp.Text())
 
@@ -91,4 +91,30 @@ func TestRequests_redirect(t *testing.T) {
 	fmt.Println(resp.EndTime)
 	fmt.Println(resp.SpendTime)
 	fmt.Println(resp.SpendTimeSeconds)
+}
+
+// 测试代理的使用
+func TestRequests_proxy(t *testing.T) {
+	req := getRequests()
+
+	// 设置代理
+	err := req.SetProxy("http://localhost:8080")
+	if err != nil {
+		panic(err)
+	}
+
+	// 发送请求
+	// 设置了代理以后，请求被重定向了代理的URL
+	resp, _ := req.Get("http://localhost:8889/payload/", false)
+	fmt.Println("响应：", resp.Text())
+}
+
+// 测试删除文件夹
+func TestRequests_DeleteDir(t *testing.T) {
+	r := getRequests()
+
+	fmt.Println(r.Config.FsTmpDir)
+	fmt.Println(r.Exists(r.Config.FsTmpDir))
+	r.DeleteDir(r.Config.FsTmpDir)
+	fmt.Println(r.Exists(r.Config.FsTmpDir))
 }

@@ -34,6 +34,7 @@ func (r *Requests) GetHttpClient() (httpClient *http.Client) {
 	// 创建客户端
 	httpClient = &http.Client{
 		Transport: tr,
+		Timeout:   time.Second * time.Duration(r.Config.Timeout),
 	}
 
 	// 超时控制

@@ -1,15 +1,19 @@
 package zdpgo_requests
 
 import (
+	"crypto/tls"
+	"embed"
 	"github.com/zhangdapeng520/zdpgo_file"
 	"github.com/zhangdapeng520/zdpgo_json"
 	"github.com/zhangdapeng520/zdpgo_log"
 	"github.com/zhangdapeng520/zdpgo_random"
 	"net/http"
+	"net/url"
+	"os"
+	"time"
 )
 
 type Requests struct {
-	Request *Request               // 请求对象
 	HttpReq *http.Request          // http请求对象
 	Header  *http.Header           // 请求头
 	Client  *http.Client           // 请求客户端
@@ -19,6 +23,8 @@ type Requests struct {
 	Body    string                 // 请求体内容
 	Files   []map[string]string    // 文件列表
 	JsonMap map[string]interface{} // JSON数据
+	Fs      embed.FS               // 嵌入文件系统
+	IsFs    bool                   // 是否使用嵌入文件系统
 
 	Config *Config              // 配置对象
 	Log    *zdpgo_log.Log       // 日志对象
@@ -51,6 +57,9 @@ func NewWithConfig(config Config) *Requests {
 	if config.Timeout == 0 {
 		config.Timeout = 60 // 默认请求不超过1分钟
 	}
+	if config.FsTmpDir == "" {
+		config.FsTmpDir = "zdpgo_requests_tmp_uploads"
+	}
 	r.Config = &config // 配置对象
 
 	r.HttpReq = r.GetHttpRequest()             // HTTP请求对象
@@ -62,9 +71,55 @@ func NewWithConfig(config Config) *Requests {
 	r.JsonMap = make(map[string]interface{})   // JSON数据
 
 	r.Json = zdpgo_json.New()                                                 // 实例化json对象
-	r.Request = NewRequest()                                                  // 实例化请求对象
 	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
 	r.Random = zdpgo_random.New()                                             // 随机数据对象
 
 	return &r
+}
+
+// SetProxy 设置代理
+func (r *Requests) SetProxy(proxyUrl string) error {
+	// 解析代理地址
+	uri, err := url.Parse(proxyUrl)
+	if err != nil {
+		r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", proxyUrl)
+	}
+
+	// 设置代理
+	r.Client.Transport = &http.Transport{
+		Proxy:           http.ProxyURL(uri),                                    // 设置代理
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps}, // 是否跳过证书校验
+	}
+	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
+
+	return nil
+}
+
+// Exists 判断文件是否存在
+func (r *Requests) Exists(filePath string) bool {
+	// 判断文件是否存在
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+// DeleteDir 删除文件夹
+func (r *Requests) DeleteDir(dirPath string) {
+	if r.Exists(dirPath) {
+		// 删除
+		var (
+			count = 0
+			err   error
+		)
+		for count < 3 {
+			err = os.RemoveAll(dirPath)
+			count++
+			time.Sleep(time.Second)
+		}
+		if err != nil {
+			r.Log.Error("删除文件夹失败", "error", err, "dir", dirPath)
+		}
+	}
 }
