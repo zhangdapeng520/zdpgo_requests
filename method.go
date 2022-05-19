@@ -117,14 +117,7 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		return nil, err
 	}
 	resp.RawRespDetail = string(responseDump)
-
-	// 请求请求内容
-	r.HttpReq.Body = nil        // 清空请求体
-	r.HttpReq.GetBody = nil     // 清空get参数
-	r.HttpReq.ContentLength = 0 // 清空内容长度
-
-	// 解析响应
-	resp.R = res
+	resp.R = res // 解析响应
 
 	// 读取内容
 	resp.Content()
@@ -134,6 +127,8 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 			r.Log.Error("关闭响应体失败", "error", err)
 		}
 	}(res.Body)
+
+	r.InitData() // 初始化数据
 
 	// 返回响应
 	return resp, nil

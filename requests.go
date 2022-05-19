@@ -62,13 +62,9 @@ func NewWithConfig(config Config) *Requests {
 	}
 	r.Config = &config // 配置对象
 
-	r.HttpReq = r.GetHttpRequest()             // HTTP请求对象
-	r.Client = r.GetHttpClient()               // HTTP客户端对象
-	r.Header = new(http.Header)                // 请求头
-	r.Params = make([]map[string]string, 0, 0) // 请求参数
-	r.Forms = make([]map[string]string, 0, 0)  // 表单数据
-	r.Files = make([]map[string]string, 0, 0)  // 文件列表
-	r.JsonMap = make(map[string]interface{})   // JSON数据
+	r.HttpReq = r.GetHttpRequest() // HTTP请求对象
+	r.Client = r.GetHttpClient()   // HTTP客户端对象
+	r.InitData()                   // 初始化数据
 
 	r.Json = zdpgo_json.New()                                                 // 实例化json对象
 	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
@@ -122,4 +118,16 @@ func (r *Requests) DeleteDir(dirPath string) {
 			r.Log.Error("删除文件夹失败", "error", err, "dir", dirPath)
 		}
 	}
+}
+
+// InitData 初始化数据
+func (r *Requests) InitData() {
+	r.Header = &http.Header{}                  // 请求头
+	r.Params = make([]map[string]string, 0, 0) // 请求参数
+	r.Forms = make([]map[string]string, 0, 0)  // 表单数据
+	r.Files = make([]map[string]string, 0, 0)  // 文件列表
+	r.JsonMap = make(map[string]interface{})   // JSON数据
+	r.HttpReq.Body = nil                       // 清空请求体
+	r.HttpReq.GetBody = nil                    // 清空get参数
+	r.HttpReq.ContentLength = 0                // 清空内容长度
 }

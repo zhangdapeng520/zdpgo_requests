@@ -109,7 +109,10 @@ func TestRequests_UploadFS(t *testing.T) {
 	// 设置代理
 	r.SetProxy("http://localhost:8080")
 
-	url := "http://localhost:8889/upload"
+	// 设置请求头
+	r.Header.Set("X-Auth-Token", "abcd")
+
+	url := "http://localhost:8887/upload"
 
 	// 上传文件
 	r.Files = append(r.Files, map[string]string{
