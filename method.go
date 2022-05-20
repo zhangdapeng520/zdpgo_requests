@@ -3,12 +3,9 @@ package zdpgo_requests
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -32,11 +29,6 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	// 请求的方法
 	r.HttpReq.Method = strings.ToUpper(method)
 
-	// 清空Header
-	for k, _ := range r.HttpReq.Header {
-		delete(r.HttpReq.Header, k)
-	}
-
 	// 遍历请求参数
 	for _, arg := range args {
 		switch a := arg.(type) { // 已经自动转换了真实的类型
@@ -46,6 +38,10 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 			}
 		case BaseAuth: //	设置权限校验
 			r.HttpReq.SetBasicAuth(a.Username, a.Password)
+		case Param: //	添加查询参数
+			r.Params = append(r.Params, a)
+		case Files: // 添加上传文件
+			r.Files = append(r.Files, a)
 		case map[string]string: // 如果是map，默认当data数据处理
 			r.Forms = append(r.Forms, a)
 		case JsonData: // 如果是JsonData结构体类型
@@ -65,11 +61,10 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	}
 
 	// 构建目标地址
-	destUrl, err := buildURLParams(originUrl, ignoreParseError, r.Params...)
+	destUrl, err := r.GetParsedUrl(originUrl)
 	if err != nil {
 		r.Log.Error("构建目标地址失败", "error", err, "originUrl", originUrl)
 	}
-
 	r.SetFilesAndForms() // 构建文件和表单
 
 	// 准备执行请求
@@ -99,36 +94,9 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		Log.Error("发送请求失败", "error", err)
 		return nil, err
 	}
-	resp.StatusCode = res.StatusCode               // 响应状态码
-	resp.EndTime = int(time.Now().UnixNano())      // 请求结束时间
-	resp.SpendTime = resp.EndTime - resp.StartTime // 请求消耗时间（纳秒）
-	resp.SpendTimeSeconds = resp.SpendTime / 1000 / 1000 / 1000
 
-	// 记录请求详情
-	requestDump, err := httputil.DumpRequest(res.Request, true)
-	if err != nil {
-		return nil, err
-	}
-	resp.RawReqDetail = string(requestDump)
-
-	// 记录响应详情
-	responseDump, err := httputil.DumpResponse(res, true)
-	if err != nil {
-		return nil, err
-	}
-	resp.RawRespDetail = string(responseDump)
-	resp.R = res // 解析响应
-
-	// 读取内容
-	resp.Content()
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			r.Log.Error("关闭响应体失败", "error", err)
-		}
-	}(res.Body)
-
-	r.InitData() // 初始化数据
+	resp = r.GetResponse(resp, res) // 获取响应信息
+	r.InitData()                    // 初始化数据
 
 	// 返回响应
 	return resp, nil
@@ -237,56 +205,4 @@ func (r *Requests) Delete(url string, args ...interface{}) (*Response, error) {
 func (r *Requests) DeleteIgnoreParseError(url string, args ...interface{}) (*Response, error) {
 	resp, err := r.Any("delete", url, true, args...)
 	return resp, err
-}
-
-// 打开文件用于上传
-func openFile(filename string) *os.File {
-	r, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	return r
-}
-
-// 处理URL的参数
-func buildURLParams(userURL string, ignoreParseError bool, params ...map[string]string) (string, error) {
-	// 解析URL
-	parsedURL, err := url.Parse(userURL)
-	if err != nil {
-		return "", err
-	}
-
-	// 解析Query查询参数
-	parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
-	if err != nil {
-		if ignoreParseError {
-			// 无法正常解析query参数，尝试讲query参数进行URL编码后再请求
-			resultUrl := fmt.Sprintf("%s://%s%s?%s",
-				parsedURL.Scheme,
-				parsedURL.Host,
-				parsedURL.Path,
-				url.PathEscape(parsedURL.RawQuery),
-			)
-			return resultUrl, nil
-		}
-		return "", nil
-	}
-
-	// 遍历参数，添加到查询参数中
-	for _, param := range params {
-		for key, value := range param {
-			parsedQuery.Add(key, value)
-		}
-	}
-
-	// 为URL添加查询参数
-	return addQueryParams(parsedURL, parsedQuery), nil
-}
-
-// 为URL添加查询参数
-func addQueryParams(parsedURL *url.URL, parsedQuery url.Values) string {
-	if len(parsedQuery) > 0 {
-		return strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1), parsedQuery.Encode()}, "?")
-	}
-	return strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1)
 }

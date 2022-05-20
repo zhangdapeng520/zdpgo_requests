@@ -62,9 +62,9 @@ func NewWithConfig(config Config) *Requests {
 	}
 	r.Config = &config // 配置对象
 
+	r.InitData()                   // 初始化数据
 	r.HttpReq = r.GetHttpRequest() // HTTP请求对象
 	r.Client = r.GetHttpClient()   // HTTP客户端对象
-	r.InitData()                   // 初始化数据
 
 	r.Json = zdpgo_json.New()                                                 // 实例化json对象
 	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
@@ -89,6 +89,16 @@ func (r *Requests) SetProxy(proxyUrl string) error {
 	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
 
 	return nil
+}
+
+// RemoveProxy 移除代理
+func (r *Requests) RemoveProxy() {
+	// 设置代理
+	r.Client.Transport = &http.Transport{
+		Proxy:           nil,                                                   // 设置代理
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps}, // 是否跳过证书校验
+	}
+	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
 }
 
 // Exists 判断文件是否存在
@@ -122,12 +132,24 @@ func (r *Requests) DeleteDir(dirPath string) {
 
 // InitData 初始化数据
 func (r *Requests) InitData() {
-	r.Header = &http.Header{}                  // 请求头
+	r.Header = &http.Header{} // 请求头
+	r.Header.Set("Content-Type", r.Config.ContentType)
+	r.Header.Set("User-Agent", r.Config.UserAgent)
+
 	r.Params = make([]map[string]string, 0, 0) // 请求参数
 	r.Forms = make([]map[string]string, 0, 0)  // 表单数据
 	r.Files = make([]map[string]string, 0, 0)  // 文件列表
 	r.JsonMap = make(map[string]interface{})   // JSON数据
-	r.HttpReq.Body = nil                       // 清空请求体
-	r.HttpReq.GetBody = nil                    // 清空get参数
-	r.HttpReq.ContentLength = 0                // 清空内容长度
+	if r.HttpReq != nil {
+		r.HttpReq.Body = nil        // 清空请求体
+		r.HttpReq.GetBody = nil     // 清空get参数
+		r.HttpReq.ContentLength = 0 // 清空内容长度
+	}
+}
+
+// SetBasicAuth 设置基本认证信息
+func (r *Requests) SetBasicAuth(username, password string) {
+	if r.HttpReq != nil {
+		r.HttpReq.SetBasicAuth(username, password)
+	}
 }

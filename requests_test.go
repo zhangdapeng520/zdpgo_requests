@@ -105,7 +105,7 @@ func TestRequests_proxy(t *testing.T) {
 
 	// 发送请求
 	// 设置了代理以后，请求被重定向了代理的URL
-	resp, _ := req.Get("http://localhost:8889/payload/", false)
+	resp, _ := req.Get("http://127.0.0.1:3333/ping")
 	fmt.Println("响应：", resp.Text())
 }
 

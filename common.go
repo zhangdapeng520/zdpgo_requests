@@ -1,8 +1,8 @@
 package zdpgo_requests
 
 type Header map[string]string        // 请求头类型
-type Params map[string]string        // Query查询参数类型
-type Datas map[string]string         // POST提交的数据
+type Param map[string]string         // Query查询参数类型
+type Form map[string]string          // POST提交的数据
 type JsonData map[string]interface{} // 提交JSON格式的数据
 type JsonString string               // 提交JSON格式的字符串
 type Files map[string]string         // 文件列表：name ,filename
