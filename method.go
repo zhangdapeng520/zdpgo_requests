@@ -47,7 +47,7 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		case JsonData: // 如果是JsonData结构体类型
 			jsonStrBytes, err = json.Marshal(a)
 			if err != nil {
-				Log.Error("解析Json数据失败", "error", err)
+				r.Log.Error("解析Json数据失败", "error", err)
 				return nil, err
 			}
 			r.HttpReq.Header.Set("Content-Type", "application/json")
@@ -70,11 +70,12 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	// 准备执行请求
 	URL, err := url.Parse(destUrl)
 	if err != nil {
-		Log.Error("解析目标地址失败", "error", err, "destUrl", destUrl)
+		r.Log.Error("解析目标地址失败", "error", err, "destUrl", destUrl)
 		return nil, err
 	}
 	r.HttpReq.URL = URL
 	r.SetCookies()
+	r.HttpReq.Header = *r.Header
 
 	// 构建请求对象
 	resp = &Response{
@@ -91,7 +92,7 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	// 执行请求
 	res, err := r.Client.Do(r.HttpReq)
 	if err != nil {
-		Log.Error("发送请求失败", "error", err)
+		r.Log.Error("发送请求失败", "error", err)
 		return nil, err
 	}
 

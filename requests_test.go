@@ -30,7 +30,7 @@ func TestRequests_basic(t *testing.T) {
 	println(resp.Text())
 
 	// 发送json数据
-	var jsonStr Datas = map[string]string{
+	var jsonStr = map[string]string{
 		"username": "zhangdapeng520",
 	}
 	var headers Header = map[string]string{
@@ -72,7 +72,7 @@ func TestRequests_header(t *testing.T) {
 // 测试设置查询参数
 func TestRequests_params(t *testing.T) {
 	req := getRequests()
-	p := Params{
+	p := Param{
 		"name": "file",
 		"id":   "12345",
 	}

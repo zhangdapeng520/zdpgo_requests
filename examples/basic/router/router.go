@@ -82,6 +82,24 @@ func UploadFS(r *zdpgo_requests.Requests, url string, fsObj embed.FS) {
 	println(resp.Text(), err)
 }
 
+// Upload 上传普通文件
+func Upload(r *zdpgo_requests.Requests, url string) {
+	fileMap := zdpgo_requests.Files{
+		"file": "test/test1.txt",
+	}
+	resp, err := r.Post(url, fileMap)
+	println(resp.Text(), err)
+}
+
+// Header 设置请求头
+func Header(r *zdpgo_requests.Requests, url string) {
+	header := zdpgo_requests.Header{
+		"User-Agent": "zdpgo_11111",
+	}
+	resp, err := r.Post(url, header)
+	println(resp.Text(), err)
+}
+
 func Timeout(r *zdpgo_requests.Requests, url string) {
 	resp, err := r.Get(url)
 	println(resp.Text(), err)

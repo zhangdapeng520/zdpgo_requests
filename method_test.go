@@ -92,38 +92,12 @@ func TestRequests_Any(t *testing.T) {
 
 func TestRequests_Upload1(t *testing.T) {
 	r := getRequests()
-	url := "http://localhost:8889/upload"
+	url := "http://localhost:3333/upload"
 	// 上传文件
 	r.Files = append(r.Files, map[string]string{
 		"file": "tmp/img1.jpg",
 	})
 	fmt.Println("================")
-	resp, err := r.Post(url)
-	println(resp.Text(), err)
-}
-
-// 测试上传嵌入文件系统
-func TestRequests_UploadFS(t *testing.T) {
-	r := getRequests()
-
-	// 设置代理
-	r.SetProxy("http://localhost:8080")
-
-	// 设置请求头
-	r.Header.Set("X-Auth-Token", "abcd")
-
-	url := "http://localhost:8887/upload"
-
-	// 上传文件
-	r.Files = append(r.Files, map[string]string{
-		"file": "tmp/img1.jpg",
-	})
-
-	// 指定使用嵌入文件系统
-	r.IsFs = true
-	r.Fs = fsObj
-
-	// 执行上传
 	resp, err := r.Post(url)
 	println(resp.Text(), err)
 }

@@ -140,11 +140,16 @@ func (r *Requests) InitData() {
 	r.Forms = make([]map[string]string, 0, 0)  // 表单数据
 	r.Files = make([]map[string]string, 0, 0)  // 文件列表
 	r.JsonMap = make(map[string]interface{})   // JSON数据
+
+	// 处理HTTP
 	if r.HttpReq != nil {
 		r.HttpReq.Body = nil        // 清空请求体
 		r.HttpReq.GetBody = nil     // 清空get参数
 		r.HttpReq.ContentLength = 0 // 清空内容长度
 	}
+
+	// 处理fs文件系统
+	r.IsFs = false
 }
 
 // SetBasicAuth 设置基本认证信息

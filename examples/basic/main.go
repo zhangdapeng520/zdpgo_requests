@@ -27,7 +27,9 @@ func main() {
 	router.Auth(r, authUrl, "zhangdapeng", "zhangdapeng") // 权限
 	router.Proxy(r, url, proxyUrl)                        // 代理
 	router.Params(r, url)                                 // 查询参数
-	router.UploadFS(r, uploadUrl, fsObj)
+	router.UploadFS(r, uploadUrl, fsObj)                  // 上传嵌入系统的文件
+	router.Upload(r, uploadUrl)                           // 上传普通文件
+	router.Header(r, url)                                 // 设置请求头
 
 	router.Timeout(r, "http://localhost:3333/long") // 超时方法
 }

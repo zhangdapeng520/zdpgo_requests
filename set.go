@@ -53,7 +53,6 @@ func (r *Requests) SetFilesAndForms() {
 
 	// 遍历文件列表
 	if len(r.Files) > 0 {
-		r.Config.ContentType = "application/x-www-form-urlencoded"
 		tmpDir := r.Config.FsTmpDir
 
 		// 如果使用了嵌入文件系统，需要将文件先转移到临时目录
@@ -82,33 +81,33 @@ func (r *Requests) SetFilesAndForms() {
 					}
 				}
 			}
-			for _, file := range r.Files {
-				for k, v := range file {
-					// 如果使用了FS嵌入文件系统，从临时目录读
-					if r.IsFs {
-						fileName := filepath.Base(v)
-						v = fmt.Sprintf("%s/%s", tmpDir, fileName)
-					}
+		}
+		for _, file := range r.Files {
+			for k, v := range file {
+				// 如果使用了FS嵌入文件系统，从临时目录读
+				if r.IsFs {
+					fileName := filepath.Base(v)
+					v = fmt.Sprintf("%s/%s", tmpDir, fileName)
+				}
 
-					// 创建文件表单
-					part, err := w.CreateFormFile(k, v)
-					if err != nil {
-						r.Log.Error("处理要上传的文件失败", "error", err)
-					}
+				// 创建文件表单
+				part, err := w.CreateFormFile(k, v)
+				if err != nil {
+					r.Log.Error("处理要上传的文件失败", "error", err)
+				}
 
-					// 复制文件到请求体
-					fileObj, err := os.Open(v)
-					if err != nil {
-						r.Log.Error("打开文件失败", "error", err, "file", v)
-					}
-					_, err = io.Copy(part, fileObj)
-					if err != nil {
-						r.Log.Error("复制文件到上次对象失败", "error", err)
-					}
-					err = fileObj.Close()
-					if err != nil {
-						r.Log.Error("关闭文件对象失败", "error", err)
-					}
+				// 复制文件到请求体
+				fileObj, err := os.Open(v)
+				if err != nil {
+					r.Log.Error("打开文件失败", "error", err, "file", v)
+				}
+				_, err = io.Copy(part, fileObj)
+				if err != nil {
+					r.Log.Error("复制文件到上次对象失败", "error", err)
+				}
+				err = fileObj.Close()
+				if err != nil {
+					r.Log.Error("关闭文件对象失败", "error", err)
 				}
 			}
 		}
@@ -135,8 +134,8 @@ func (r *Requests) SetFilesAndForms() {
 	// 设置文件头："Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
 	r.HttpReq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
 	r.HttpReq.ContentLength = int64(b.Len())
-	r.HttpReq.Header.Set("Content-Type", r.Config.ContentType)
-	r.Log.Debug("设置上传表单和文件成功", "ContentType", r.Config.ContentType)
+	r.Header.Set("Content-Type", w.FormDataContentType())
+	r.Log.Debug("设置上传表单和文件成功", "ContentType", w.FormDataContentType())
 }
 
 // SetForms 设置表单数据
