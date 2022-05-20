@@ -53,16 +53,13 @@ func (r *Requests) SetFilesAndForms() {
 
 	// 遍历文件列表
 	if len(r.Files) > 0 {
-		tmpDir := r.Config.FsTmpDir
+		tmpDir := r.Config.TmpDir
 
 		// 如果使用了嵌入文件系统，需要将文件先转移到临时目录
 		if r.IsFs {
 			// 不存在则创建文件
-			if !r.Exists(tmpDir) {
-				err := os.Mkdir(tmpDir, 0644)
-				if err != nil {
-					r.Log.Error("创建临时目录失败", "error", err)
-				}
+			if !r.File.IsExists(tmpDir) {
+				r.File.CreateMultiDir(tmpDir)
 			}
 
 			// 保存文件到临时目录

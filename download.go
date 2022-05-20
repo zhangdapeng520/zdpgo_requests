@@ -2,10 +2,8 @@ package zdpgo_requests
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"sync"
 	"time"
@@ -13,45 +11,33 @@ import (
 
 // DownloadToBytes 下载文件，返回文件流
 func (r *Requests) DownloadToBytes(urlPath string) ([]byte, error) {
-	resp, err := http.Get(urlPath)
+	resp, err := r.Get(urlPath)
 	if err != nil {
 		r.Log.Error("获取下载数据失败", "error", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		r.Log.Error("读取下载数据失败", "error", err)
-		return nil, err
-	}
-	return data, nil
+	return resp.Content, nil
 }
 
 // Download 下载文件并保存到指定路径
 func (r *Requests) Download(urlPath, saveDir string) {
-	resp, err := http.Get(urlPath)
+	resp, err := r.Get(urlPath)
 	if err != nil {
 		r.Log.Error("获取下载数据失败", "error", err, "urlPath", urlPath)
 		return
 	}
-	defer resp.Body.Close()
 
-	// 创建保存文件
+	// 创建目录
 	fileName := r.File.GetFileName(urlPath)
 	savePath := path.Join(saveDir, fileName)
-	out, err := os.Create(savePath)
-	if err != nil {
-		r.Log.Error("创建保存文件失败", "error", err, "savePath", savePath)
-		return
+	if !r.File.IsExists(saveDir) {
+		r.File.CreateMultiDir(saveDir)
 	}
-	defer out.Close()
 
-	// 然后将响应流和文件流对接起来
-	_, err = io.Copy(out, resp.Body)
+	// 保存文件
+	err = ioutil.WriteFile(savePath, resp.Content, 0644)
 	if err != nil {
-		r.Log.Error("保存下载数据失败", "error", err)
-		return
+		r.Log.Error("保存文件失败", "error", err, "savePath", savePath)
 	}
 }
 
@@ -85,10 +71,10 @@ func (r *Requests) DownloadToTmpAndReturnIsDeleted(urlPath string, waitSeconds i
 	time.Sleep(time.Duration(waitSeconds) * time.Second)
 
 	// 判断数据是否存在
-	flag := r.File.IsDirContainsFile("tmp", tmpFileName)
+	flag := r.File.IsDirContainsFile(r.Config.TmpDir, tmpFileName)
 
 	// 删除临时文件
-	r.File.DeleteDirFile("tmp", tmpFileName)
+	r.File.DeleteDirFile(r.Config.TmpDir, tmpFileName)
 	return flag
 }
 
@@ -115,11 +101,11 @@ func (r *Requests) DownloadToTmp(urlPath string) string {
 	}
 
 	// 将数据写入临时文件
-	if !r.File.IsExists("tmp") {
-		r.File.CreateMultiDir("tmp")
+	if !r.File.IsExists(r.Config.TmpDir) {
+		r.File.CreateMultiDir(r.Config.TmpDir)
 	}
 	tmpFileName := fmt.Sprintf("%s%s", r.Random.Str(32), suffix)
-	r.File.CreateFile(path.Join("tmp", tmpFileName), string(data))
+	r.File.CreateFile(path.Join(r.Config.TmpDir, tmpFileName), string(data))
 
 	// 返回临时文件名
 	return tmpFileName

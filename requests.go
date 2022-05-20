@@ -9,22 +9,23 @@ import (
 	"github.com/zhangdapeng520/zdpgo_random"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 )
 
 type Requests struct {
-	HttpReq *http.Request          // http请求对象
-	Header  *http.Header           // 请求头
-	Client  *http.Client           // 请求客户端
-	Cookies []*http.Cookie         // cookie
-	Params  []map[string]string    // 请求参数
-	Forms   []map[string]string    // form表单数据
-	Body    string                 // 请求体内容
-	Files   []map[string]string    // 文件列表
-	JsonMap map[string]interface{} // JSON数据
-	Fs      embed.FS               // 嵌入文件系统
-	IsFs    bool                   // 是否使用嵌入文件系统
+	HttpReq      *http.Request          // http请求对象
+	HttpResponse *http.Response         // http响应对象
+	Response     *Response              // 自定义响应对象
+	Header       *http.Header           // 请求头
+	Client       *http.Client           // 请求客户端
+	Cookies      []*http.Cookie         // cookie
+	Params       []map[string]string    // 请求参数
+	Forms        []map[string]string    // form表单数据
+	Body         string                 // 请求体内容
+	Files        []map[string]string    // 文件列表
+	JsonMap      map[string]interface{} // JSON数据
+	Fs           embed.FS               // 嵌入文件系统
+	IsFs         bool                   // 是否使用嵌入文件系统
 
 	Config *Config              // 配置对象
 	Log    *zdpgo_log.Log       // 日志对象
@@ -57,8 +58,8 @@ func NewWithConfig(config Config) *Requests {
 	if config.Timeout == 0 {
 		config.Timeout = 60 // 默认请求不超过1分钟
 	}
-	if config.FsTmpDir == "" {
-		config.FsTmpDir = "zdpgo_requests_tmp_uploads"
+	if config.TmpDir == "" {
+		config.TmpDir = ".zdpgo_requests_tmp_files"
 	}
 	r.Config = &config // 配置对象
 
@@ -101,38 +102,11 @@ func (r *Requests) RemoveProxy() {
 	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
 }
 
-// Exists 判断文件是否存在
-func (r *Requests) Exists(filePath string) bool {
-	// 判断文件是否存在
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-// DeleteDir 删除文件夹
-func (r *Requests) DeleteDir(dirPath string) {
-	if r.Exists(dirPath) {
-		// 删除
-		var (
-			count = 0
-			err   error
-		)
-		for count < 3 {
-			err = os.RemoveAll(dirPath)
-			count++
-			time.Sleep(time.Second)
-		}
-		if err != nil {
-			r.Log.Error("删除文件夹失败", "error", err, "dir", dirPath)
-		}
-	}
-}
-
 // InitData 初始化数据
 func (r *Requests) InitData() {
-	r.Header = &http.Header{} // 请求头
+	r.HttpResponse = &http.Response{} // HTTP响应对象
+	r.Response = &Response{}          // 自定义响应对象
+	r.Header = &http.Header{}         // 请求头
 	r.Header.Set("Content-Type", r.Config.ContentType)
 	r.Header.Set("User-Agent", r.Config.UserAgent)
 

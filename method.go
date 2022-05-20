@@ -1,9 +1,7 @@
 package zdpgo_requests
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,8 +15,8 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	err error) {
 	defer func() {
 		// 删除临时目录
-		if r.Exists(r.Config.FsTmpDir) {
-			r.DeleteDir(r.Config.FsTmpDir)
+		if r.File.IsExists(r.Config.TmpDir) {
+			r.File.DeleteDir(r.Config.TmpDir)
 		}
 	}()
 
@@ -36,26 +34,29 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 			for k, v := range a {
 				r.Header.Set(k, v)
 			}
-		case BaseAuth: //	设置权限校验
+		case BaseAuth: // 设置权限校验
 			r.HttpReq.SetBasicAuth(a.Username, a.Password)
+		case http.Cookie: // 设置cookie
+			r.Cookies = append(r.Cookies, &a)
 		case Param: //	添加查询参数
 			r.Params = append(r.Params, a)
 		case Files: // 添加上传文件
 			r.Files = append(r.Files, a)
 		case map[string]string: // 如果是map，默认当data数据处理
 			r.Forms = append(r.Forms, a)
-		case JsonData: // 如果是JsonData结构体类型
+		case JsonMap: // 如果是JsonData结构体类型
 			jsonStrBytes, err = json.Marshal(a)
 			if err != nil {
 				r.Log.Error("解析Json数据失败", "error", err)
 				return nil, err
 			}
-			r.HttpReq.Header.Set("Content-Type", "application/json")
+			r.Header.Set("Content-Type", "application/json")
 			r.SetBodyByBytes(jsonStrBytes)
 		case JsonString: //	如果是Json字符串
-			r.HttpReq.Header.Set("Content-Type", "application/json")
+			r.Header.Set("Content-Type", "application/json")
 			r.SetBodyByString(string(a))
 		case string: //	如果是字符串，则当成是raw纯文本数据
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			r.SetBodyByString(a)
 		}
 	}
@@ -88,59 +89,24 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		}
 		return http.ErrUseLastResponse
 	}
+	if r.Config.IsKeepSession {
+		r.ClientSetCookies()
+	}
 
 	// 执行请求
-	res, err := r.Client.Do(r.HttpReq)
+	r.HttpResponse, err = r.Client.Do(r.HttpReq)
 	if err != nil {
 		r.Log.Error("发送请求失败", "error", err)
 		return nil, err
 	}
 
-	resp = r.GetResponse(resp, res) // 获取响应信息
-	r.InitData()                    // 初始化数据
+	resp = r.GetResponse(resp) // 获取响应信息
+	if !r.Config.IsKeepSession {
+		r.InitData() // 初始化数据
+	}
 
 	// 返回响应
 	return resp, nil
-}
-
-// AnyJsonWithTimeout 发送任意请求并携带JSON数据
-func (r *Requests) AnyJsonWithTimeout(method string, targetUrl string, body map[string]interface{},
-	timeout int) (result string,
-	err error) {
-
-	defer func() {
-		// 删除临时目录
-		if r.Exists(r.Config.FsTmpDir) {
-			r.DeleteDir(r.Config.FsTmpDir)
-		}
-	}()
-
-	// 准备json字符串
-	jsonStr, err := json.Marshal(body)
-	if err != nil {
-		return
-	}
-
-	// 准备请求对象
-	req, err := http.NewRequest(strings.ToUpper(method), targetUrl, bytes.NewBuffer(jsonStr))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "ZDPGo-Requests")
-
-	// 准备客户端
-	cli := http.Client{
-		Timeout: time.Second * time.Duration(timeout), // 超时时间
-	}
-	resp, err := cli.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	// 读取结果
-	b, _ := io.ReadAll(resp.Body)
-	result = string(b)
-
-	return
 }
 
 // Get 发送GET请求
@@ -165,11 +131,6 @@ func (r *Requests) Post(url string, args ...interface{}) (*Response, error) {
 func (r *Requests) PostIgnoreParseError(url string, args ...interface{}) (*Response, error) {
 	resp, err := r.Any("post", url, true, args...)
 	return resp, err
-}
-
-// PostJsonWithTimeout 发送JSON请求并携带JSON数据
-func (r *Requests) PostJsonWithTimeout(targetUrl string, body map[string]interface{}, timeout int) (result string, err error) {
-	return r.AnyJsonWithTimeout("post", targetUrl, body, timeout)
 }
 
 // Patch 发送PATCH请求

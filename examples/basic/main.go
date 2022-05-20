@@ -16,10 +16,13 @@ func main() {
 	})
 
 	var (
-		url       = "http://localhost:3333/ping"
-		uploadUrl = "http://localhost:3333/upload"
-		authUrl   = "http://localhost:3333/admin"
-		proxyUrl  = "http://10.1.3.12:9999"
+		url         = "http://localhost:3333/ping"
+		jsonUrl     = "http://localhost:3333/json"
+		textUrl     = "http://localhost:3333/text"
+		uploadUrl   = "http://localhost:3333/upload"
+		authUrl     = "http://localhost:3333/admin"
+		proxyUrl    = "http://10.1.3.12:9999"
+		redirectUrl = "https://www.baidu.com/link?url=IIZcBDQ9FSkK8wRluFkNAxjf4a7VDwHH0kFqGazjEAFGRDdnxe0HqQRdSocksxbbrpMjo7PTBeGjgnmf0aYOqN7ld6dXDBVO_jMYS16Yuy7CI5M_TMysMLpmFhF4CEjGjXOEYvjL_r9Hgz2-4jwsoa"
 	)
 
 	router.Any(r, url)                                    // any方法
@@ -30,6 +33,10 @@ func main() {
 	router.UploadFS(r, uploadUrl, fsObj)                  // 上传嵌入系统的文件
 	router.Upload(r, uploadUrl)                           // 上传普通文件
 	router.Header(r, url)                                 // 设置请求头
+	router.Json(r, jsonUrl)                               // 发送json数据
+	router.Text(r, textUrl)                               // 发送纯文本数据
+	router.Redirect(r, redirectUrl)                       // 重定向
+	router.Download(r)                                    // 下载
 
 	router.Timeout(r, "http://localhost:3333/long") // 超时方法
 }

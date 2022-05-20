@@ -23,10 +23,8 @@ func (req *Requests) ClientSetCookies() {
 
 }
 
-// Cookies 获取响应的cookie
-func (resp *Response) Cookies() (cookies []*http.Cookie) {
-	httpreq := resp.req.HttpReq
-	client := resp.req.Client
-	cookies = client.Jar.Cookies(httpreq.URL)
+// GetCookies 获取响应的cookie
+func (r *Requests) GetCookies() (cookies []*http.Cookie) {
+	cookies = r.Client.Jar.Cookies(r.HttpReq.URL)
 	return cookies
 }

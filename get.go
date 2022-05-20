@@ -1,9 +1,11 @@
 package zdpgo_requests
 
 import (
+	"compress/gzip"
 	"crypto/tls"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
@@ -113,15 +115,15 @@ func (r *Requests) GetParsedUrl(userURL string) (finalUrl string, err error) {
 	return
 }
 
-func (r *Requests) GetResponse(resp *Response, res *http.Response) *Response {
-	resp.StatusCode = res.StatusCode               // 响应状态码
+func (r *Requests) GetResponse(resp *Response) *Response {
+	resp.StatusCode = r.HttpResponse.StatusCode    // 响应状态码
 	resp.EndTime = int(time.Now().UnixNano())      // 请求结束时间
 	resp.SpendTime = resp.EndTime - resp.StartTime // 请求消耗时间（纳秒）
 	resp.SpendTimeSeconds = resp.SpendTime / 1000 / 1000 / 1000
 
 	// 记录请求详情
 	if r.Config.IsRecordRequestDetail {
-		requestDump, err := httputil.DumpRequest(res.Request, true)
+		requestDump, err := httputil.DumpRequest(r.HttpResponse.Request, true)
 		if err != nil {
 			r.Log.Error("获取请求详情失败", "error", err)
 			return resp
@@ -131,21 +133,41 @@ func (r *Requests) GetResponse(resp *Response, res *http.Response) *Response {
 
 	// 记录响应详情
 	if r.Config.IsRecordResponseDetail {
-		responseDump, err := httputil.DumpResponse(res, true)
+		responseDump, err := httputil.DumpResponse(r.HttpResponse, true)
 		if err != nil {
 			r.Log.Error("获取响应详情失败", "error", err)
 			return resp
 		}
 		resp.RawRespDetail = string(responseDump)
 	}
-
-	resp.R = res   // 解析响应
-	resp.Content() // 读取内容
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			r.Log.Error("关闭响应体失败", "error", err)
-		}
-	}(res.Body)
+	r.GetContent(resp, r.HttpResponse) // 读取内容
 	return resp
+}
+
+// GetContent 获取响应体内容
+func (r *Requests) GetContent(resp *Response, httpResponse *http.Response) {
+	var (
+		err    error
+		reader io.ReadCloser
+	)
+
+	// 获取响应体真实内容
+	var Body = httpResponse.Body
+	if httpResponse.Header.Get("Content-Encoding") == "gzip" && httpResponse.Header.Get("Accept-Encoding") != "" {
+		reader, err = gzip.NewReader(Body)
+		if err != nil {
+			r.Log.Error("解压响应体内容失败", "error", err)
+			return
+		}
+		Body = reader
+	}
+
+	// 读取响应体内容
+	resp.Content, err = ioutil.ReadAll(Body)
+	if err != nil {
+		r.Log.Error("读取响应体内容失败", "error", err)
+	}
+
+	// 文本内容
+	resp.Text = string(resp.Content)
 }
