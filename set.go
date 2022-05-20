@@ -2,14 +2,17 @@ package zdpgo_requests
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 /*
@@ -155,4 +158,30 @@ func (r *Requests) SetCookies() {
 		// 清除请求对象的cookie
 		r.Cookies = r.Cookies[0:0]
 	}
+}
+
+// SetProxy 设置代理
+func (r *Requests) SetProxy(proxyUrl string) error {
+	// 解析代理地址
+	uri, err := url.Parse(proxyUrl)
+	if err != nil {
+		r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", proxyUrl)
+	}
+
+	// 设置代理
+	r.Client.Transport = &http.Transport{
+		Proxy:           http.ProxyURL(uri),                                    // 设置代理
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps}, // 是否跳过证书校验
+	}
+	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
+
+	return nil
+}
+
+// SetTimeout 设置请求超时时间
+func (r *Requests) SetTimeout(timeout int) {
+	if timeout <= 0 {
+		timeout = 60
+	}
+	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
 }

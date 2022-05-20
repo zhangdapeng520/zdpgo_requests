@@ -203,6 +203,7 @@ func Download(r *zdpgo_requests.Requests) {
 }
 
 func Timeout(r *zdpgo_requests.Requests, url string) {
+	r.SetTimeout(1) // 设置超时
 	resp, err := r.Get(url)
 	if resp != nil {
 		println(resp.Text, err)

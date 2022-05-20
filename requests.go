@@ -8,7 +8,6 @@ import (
 	"github.com/zhangdapeng520/zdpgo_log"
 	"github.com/zhangdapeng520/zdpgo_random"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -72,24 +71,6 @@ func NewWithConfig(config Config) *Requests {
 	r.Random = zdpgo_random.New()                                             // 随机数据对象
 
 	return &r
-}
-
-// SetProxy 设置代理
-func (r *Requests) SetProxy(proxyUrl string) error {
-	// 解析代理地址
-	uri, err := url.Parse(proxyUrl)
-	if err != nil {
-		r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", proxyUrl)
-	}
-
-	// 设置代理
-	r.Client.Transport = &http.Transport{
-		Proxy:           http.ProxyURL(uri),                                    // 设置代理
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps}, // 是否跳过证书校验
-	}
-	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
-
-	return nil
 }
 
 // RemoveProxy 移除代理

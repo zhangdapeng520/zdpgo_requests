@@ -11,6 +11,7 @@ import (
 
 // DownloadToBytes 下载文件，返回文件流
 func (r *Requests) DownloadToBytes(urlPath string) ([]byte, error) {
+	r.Log.Debug("正在下载", "urlPath", urlPath)
 	resp, err := r.Get(urlPath)
 	if err != nil {
 		r.Log.Error("获取下载数据失败", "error", err)
@@ -21,6 +22,7 @@ func (r *Requests) DownloadToBytes(urlPath string) ([]byte, error) {
 
 // Download 下载文件并保存到指定路径
 func (r *Requests) Download(urlPath, saveDir string) {
+	r.Log.Debug("正在下载", "urlPath", urlPath)
 	resp, err := r.Get(urlPath)
 	if err != nil {
 		r.Log.Error("获取下载数据失败", "error", err, "urlPath", urlPath)
@@ -45,7 +47,6 @@ func (r *Requests) Download(urlPath, saveDir string) {
 func (r *Requests) DownloadMany(urlPath []string, saveDir string) {
 	var wg = new(sync.WaitGroup)
 	for _, url := range urlPath {
-		r.Log.Debug("正在下载", "url", url)
 		savePath := r.File.GetFileName(url)
 		if savePath == "" {
 			r.Log.Error("获取文件名失败", "savePath", savePath, "url", url)
@@ -80,6 +81,8 @@ func (r *Requests) DownloadToTmpAndReturnIsDeleted(urlPath string, waitSeconds i
 
 // DownloadToTmp 下载文件到临时目录
 func (r *Requests) DownloadToTmp(urlPath string) string {
+	r.Log.Debug("正在下载", "urlPath", urlPath)
+
 	// 获取文件数据
 	resp, err := http.Get(urlPath)
 	if err != nil {
