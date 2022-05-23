@@ -18,6 +18,11 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		if r.File.IsExists(r.Config.TmpDir) {
 			r.File.DeleteDir(r.Config.TmpDir)
 		}
+
+		// 捕获异常
+		if err := recover(); err != nil {
+			r.Log.Error("处理请求失败", "error", err)
+		}
 	}()
 
 	var (
@@ -62,10 +67,7 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	}
 
 	// 构建目标地址
-	destUrl, err := r.GetParsedUrl(originUrl)
-	if err != nil {
-		r.Log.Error("构建目标地址失败", "error", err, "originUrl", originUrl)
-	}
+	destUrl := r.GetParsedUrl(originUrl)
 	r.SetFilesAndForms() // 构建文件和表单
 
 	// 准备执行请求

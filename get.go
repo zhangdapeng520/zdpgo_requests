@@ -60,59 +60,53 @@ func (r *Requests) GetHttpClient() (httpClient *http.Client) {
 }
 
 // GetParsedUrl 获取解析后的URL地址
-func (r *Requests) GetParsedUrl(userURL string) (finalUrl string, err error) {
-	finalUrl = userURL
-	var (
-		parsedURL   *url.URL
-		parsedQuery url.Values
-	)
-
+func (r *Requests) GetParsedUrl(userURL string) string {
 	// 解析URL
-	parsedURL, err = url.Parse(userURL)
+	parsedURL, err := url.Parse(userURL)
 	if err != nil {
 		r.Log.Error("解析URL地址失败", "error", err, "userURL", userURL)
-		if !r.Config.IsIgnoredParsedError {
-			return
-		}
+		return userURL
 	}
 
 	// 解析Query查询参数
-	parsedQuery, err = url.ParseQuery(parsedURL.RawQuery)
-	if err != nil {
-		r.Log.Error("解析query查询参数失败", "error", err, "query", parsedURL.RawQuery)
-		if !r.Config.IsIgnoredParsedError { // 不忽略解析错误
+	if parsedURL != nil {
+		parsedQuery, err := url.ParseQuery(parsedURL.RawQuery)
+		if err != nil {
+			r.Log.Error("解析query查询参数失败", "error", err, "query", parsedURL.RawQuery)
 			// 无法正常解析query参数，尝试将query参数进行URL编码后再请求
-			finalUrl = fmt.Sprintf("%s://%s%s?%s",
+			finalUrl := fmt.Sprintf("%s://%s%s?%s",
 				parsedURL.Scheme,
 				parsedURL.Host,
 				parsedURL.Path,
 				url.PathEscape(parsedURL.RawQuery),
 			)
+			return finalUrl
 		}
-		return
-	}
 
-	// 遍历新的查询参数，添加到查询参数中
-	r.Log.Debug("处理查询参数", "params", r.Params)
-	for _, param := range r.Params {
-		for key, value := range param {
-			parsedQuery.Add(key, value)
+		if parsedQuery != nil {
+			// 遍历新的查询参数，添加到查询参数中
+			r.Log.Debug("处理查询参数", "params", r.Params)
+			for _, param := range r.Params {
+				for key, value := range param {
+					parsedQuery.Add(key, value)
+				}
+			}
+
+			// 为URL添加查询参数
+			r.Log.Debug("为URL添加查询参数", "parsedQuery", parsedQuery)
+			if len(parsedQuery) > 0 {
+				finalUrl := strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1),
+					parsedQuery.Encode()}, "?")
+				r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
+				return finalUrl
+			}
+			// 得到最终的URL
+			finalUrl := strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1)
+			r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
+			return finalUrl
 		}
 	}
-
-	// 为URL添加查询参数
-	r.Log.Debug("为URL添加查询参数", "parsedQuery", parsedQuery)
-	if len(parsedQuery) > 0 {
-		finalUrl = strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1),
-			parsedQuery.Encode()}, "?")
-		r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
-		return
-	}
-
-	// 得到最终的URL
-	finalUrl = strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1)
-	r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
-	return
+	return userURL
 }
 
 func (r *Requests) GetResponse(resp *Response) *Response {
@@ -146,6 +140,11 @@ func (r *Requests) GetResponse(resp *Response) *Response {
 
 // GetContent 获取响应体内容
 func (r *Requests) GetContent(resp *Response, httpResponse *http.Response) {
+	// 响应体没有内容
+	if httpResponse.Body == nil {
+		return
+	}
+
 	var (
 		err    error
 		reader io.ReadCloser
