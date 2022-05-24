@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
@@ -14,31 +15,38 @@ import (
 	"time"
 )
 
-func (r *Requests) GetHttpRequest() (req *http.Request) {
-	req = &http.Request{
+func (r *Requests) GetHttpRequest() *http.Request {
+	req := &http.Request{
 		Method:     "GET",
 		Header:     make(http.Header),
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 	}
-
-	// 设置请求头
-	req.Header = *r.Header
+	req.Close = true // 解决EOF的bug
 
 	// 返回
-	return
+	return req
 }
 
 // GetHttpClient 获取HTTP请求的客户端
-func (r *Requests) GetHttpClient() (httpClient *http.Client) {
-	// 是否跳过证书验证
+func (r *Requests) GetHttpClient() *http.Client {
+	port := r.GetHttpPort()
+	r.Response.ClientPort = port
+	netAddr := &net.TCPAddr{Port: port}
+	dialer := &net.Dialer{LocalAddr: netAddr}
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps},
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dialer.DialContext,
+		MaxIdleConns:          100, // 连接池大小
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps},
 	}
 
 	// 创建客户端
-	httpClient = &http.Client{
+	httpClient := &http.Client{
 		Transport: tr,
 		Timeout:   time.Second * time.Duration(r.Config.Timeout),
 	}
@@ -56,7 +64,7 @@ func (r *Requests) GetHttpClient() (httpClient *http.Client) {
 	httpClient.Jar = jar
 
 	// 返回
-	return
+	return httpClient
 }
 
 // GetParsedUrl 获取解析后的URL地址
@@ -85,7 +93,6 @@ func (r *Requests) GetParsedUrl(userURL string) string {
 
 		if parsedQuery != nil {
 			// 遍历新的查询参数，添加到查询参数中
-			r.Log.Debug("处理查询参数", "params", r.Params)
 			for _, param := range r.Params {
 				for key, value := range param {
 					parsedQuery.Add(key, value)
@@ -93,49 +100,46 @@ func (r *Requests) GetParsedUrl(userURL string) string {
 			}
 
 			// 为URL添加查询参数
-			r.Log.Debug("为URL添加查询参数", "parsedQuery", parsedQuery)
 			if len(parsedQuery) > 0 {
 				finalUrl := strings.Join([]string{strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1),
 					parsedQuery.Encode()}, "?")
-				r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
 				return finalUrl
 			}
 			// 得到最终的URL
 			finalUrl := strings.Replace(parsedURL.String(), "?"+parsedURL.RawQuery, "", -1)
-			r.Log.Debug("获取最终的URL成功", "finalUrl", finalUrl, "parsedURL", parsedURL)
 			return finalUrl
 		}
 	}
 	return userURL
 }
 
-func (r *Requests) GetResponse(resp *Response) *Response {
-	resp.StatusCode = r.HttpResponse.StatusCode    // 响应状态码
-	resp.EndTime = int(time.Now().UnixNano())      // 请求结束时间
-	resp.SpendTime = resp.EndTime - resp.StartTime // 请求消耗时间（纳秒）
-	resp.SpendTimeSeconds = resp.SpendTime / 1000 / 1000 / 1000
+func (r *Requests) GetResponse() {
+	r.Response.StatusCode = r.HttpResponse.StatusCode                // 响应状态码
+	r.Response.EndTime = int(time.Now().UnixNano())                  // 请求结束时间
+	r.Response.SpendTime = r.Response.EndTime - r.Response.StartTime // 请求消耗时间（纳秒）
+	r.Response.SpendTimeSeconds = r.Response.SpendTime / 1000 / 1000 / 1000
 
 	// 记录请求详情
-	if r.Config.IsRecordRequestDetail {
+	if r.Config.IsRecordRequestDetail && r.HttpResponse != nil && r.HttpResponse.Request != nil {
 		requestDump, err := httputil.DumpRequest(r.HttpResponse.Request, true)
 		if err != nil {
 			r.Log.Error("获取请求详情失败", "error", err)
-			return resp
+			return
 		}
-		resp.RawReqDetail = string(requestDump)
+		r.Response.RawReqDetail = string(requestDump)
 	}
 
 	// 记录响应详情
-	if r.Config.IsRecordResponseDetail {
+	if r.Config.IsRecordResponseDetail && r.HttpResponse != nil {
 		responseDump, err := httputil.DumpResponse(r.HttpResponse, true)
 		if err != nil {
 			r.Log.Error("获取响应详情失败", "error", err)
-			return resp
+			return
 		}
-		resp.RawRespDetail = string(responseDump)
+		r.Response.RawRespDetail = string(responseDump)
 	}
-	r.GetContent(resp, r.HttpResponse) // 读取内容
-	return resp
+	r.GetContent(r.Response, r.HttpResponse) // 读取内容
+	return
 }
 
 // GetContent 获取响应体内容
@@ -169,4 +173,25 @@ func (r *Requests) GetContent(resp *Response, httpResponse *http.Response) {
 
 	// 文本内容
 	resp.Text = string(resp.Content)
+}
+
+// GetHttpPort 获取系统中可用的端口号
+func (r *Requests) GetHttpPort() int {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		r.Log.Error("解析TCP地址失败", "error", err)
+		return 0
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		r.Log.Error("创建tcp监听失败", "error", err)
+		return 0
+	}
+	defer l.Close()
+
+	// 获取端口号
+	p := l.Addr().(*net.TCPAddr).Port
+	r.Log.Debug("获取可用的HTTP端口号成功", "port", p)
+	return p
 }

@@ -16,42 +16,42 @@ import (
 
 func Any(r *zdpgo_requests.Requests, url string) {
 	resp, err := r.Any("get", url, true)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Any("post", url, true)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Any("put", url, true)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Any("delete", url, true)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Any("patch", url, true)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 func Special(r *zdpgo_requests.Requests, url string) {
 	resp, err := r.Get(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Post(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Put(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Delete(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Patch(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 func Proxy(r *zdpgo_requests.Requests, url, proxyUrl string) {
 	r.SetProxy(proxyUrl)
 	resp, err := r.Get(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Post(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Put(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Delete(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Patch(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	r.RemoveProxy()
 }
 func Params(r *zdpgo_requests.Requests, url string) {
@@ -61,15 +61,15 @@ func Params(r *zdpgo_requests.Requests, url string) {
 		"c": "abc",
 	}
 	resp, err := r.Get(url, param)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Post(url, param)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Put(url, param)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Delete(url, param)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	resp, err = r.Patch(url, param)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // UploadFS 上传fs内嵌系统文件
@@ -80,7 +80,7 @@ func UploadFS(r *zdpgo_requests.Requests, url string, fsObj embed.FS) {
 		"file": "test/test.txt",
 	}
 	resp, err := r.Post(url, fileMap)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Upload 上传普通文件
@@ -89,7 +89,7 @@ func Upload(r *zdpgo_requests.Requests, url string) {
 		"file": "test/test1.txt",
 	}
 	resp, err := r.Post(url, fileMap)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Header 设置请求头
@@ -99,7 +99,7 @@ func Header(r *zdpgo_requests.Requests, url string) {
 		"Abc-123":    "zdpgo_11111",
 	}
 	resp, err := r.Post(url, header)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Json 发送json数据
@@ -110,12 +110,12 @@ func Json(r *zdpgo_requests.Requests, url string) {
 		"Abc-123":    "zdpgo_11111",
 	}
 	resp, err := r.Post(url, jMap)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 
 	// 发送json字符串
 	var jStr zdpgo_requests.JsonString = "{\"aaabbbcc\":1122233}"
 	resp, err = r.Post(url, jStr)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Text 发送纯文本数据
@@ -123,7 +123,7 @@ func Text(r *zdpgo_requests.Requests, url string) {
 	// 发送json字符串
 	var jStr = "{\"aaabbbcc\":1122233}"
 	resp, err := r.Post(url, jStr)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Redirect 重定向
@@ -206,12 +206,12 @@ func Timeout(r *zdpgo_requests.Requests, url string) {
 	r.SetTimeout(1) // 设置超时
 	resp, err := r.Get(url)
 	if resp != nil {
-		println(resp.Text, err)
+		r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	}
 }
 
 func Auth(r *zdpgo_requests.Requests, url string, username, password string) {
 	r.SetBasicAuth(username, password)
 	resp, err := r.Get(url)
-	println(resp.Text, err)
+	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }

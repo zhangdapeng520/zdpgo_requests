@@ -15,15 +15,17 @@ type BaseAuth struct {
 
 // Response 响应对象
 type Response struct {
-	Content          []byte // 响应内容
-	Text             string // 响应文本
-	RawReqDetail     string // 请求详情字符串
-	RawRespDetail    string // 响应详情字符串
-	StatusCode       int    // 状态码
-	IsRedirect       bool   // 是否重定向了
-	RedirectUrl      string // 重定向的的URL地址
-	StartTime        int    // 请求开始时间（纳秒）
-	EndTime          int    // 请求结束时间（纳秒）
-	SpendTime        int    // 请求消耗时间（纳秒）
-	SpendTimeSeconds int    // 请求消耗时间（秒）
+	Content          []byte `json:"content"`            // 响应内容
+	Text             string `json:"text"`               // 响应文本
+	RawReqDetail     string `json:"raw_req_detail"`     // 请求详情字符串
+	RawRespDetail    string `json:"raw_resp_detail"`    // 响应详情字符串
+	StatusCode       int    `json:"status_code"`        // 状态码
+	IsRedirect       bool   `json:"is_redirect"`        // 是否重定向了
+	RedirectUrl      string `json:"redirect_url"`       // 重定向的的URL地址
+	StartTime        int    `json:"start_time"`         // 请求开始时间（纳秒）
+	EndTime          int    `json:"end_time"`           // 请求结束时间（纳秒）
+	SpendTime        int    `json:"spend_time"`         // 请求消耗时间（纳秒）
+	SpendTimeSeconds int    `json:"spend_time_seconds"` // 请求消耗时间（秒）
+	ClientIp         string `json:"client_ip"`          // 客户端IP
+	ClientPort       int    `json:"client_port"`        // 客户端端口号
 }

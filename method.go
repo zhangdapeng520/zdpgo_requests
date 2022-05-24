@@ -11,8 +11,9 @@ import (
 // Any 发送任意请求
 // @param originUrl 要请求的URL地址
 // @param args 请求携带的参数
-func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...interface{}) (resp *Response,
-	err error) {
+func (r *Requests) Any(method, originUrl string, args ...interface{}) (*Response, error) {
+	r.InitData() // 初始化数据
+
 	defer func() {
 		// 删除临时目录
 		if r.File.IsExists(r.Config.TmpDir) {
@@ -20,14 +21,10 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		}
 
 		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
+		//if err := recover(); err != nil {
+		//	r.Log.Error("处理请求失败", "error", err)
+		//}
 	}()
-
-	var (
-		jsonStrBytes []byte // json字符串字节数组
-	)
 
 	// 请求的方法
 	r.HttpReq.Method = strings.ToUpper(method)
@@ -50,7 +47,7 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		case map[string]string: // 如果是map，默认当data数据处理
 			r.Forms = append(r.Forms, a)
 		case JsonMap: // 如果是JsonData结构体类型
-			jsonStrBytes, err = json.Marshal(a)
+			jsonStrBytes, err := json.Marshal(a)
 			if err != nil {
 				r.Log.Error("解析Json数据失败", "error", err)
 				return nil, err
@@ -81,13 +78,11 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 	r.HttpReq.Header = *r.Header
 
 	// 构建请求对象
-	resp = &Response{
-		StartTime: int(time.Now().UnixNano()),
-	}
+	r.Response.StartTime = int(time.Now().UnixNano())
 	r.Client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
 		if len(via) > 0 {
-			resp.IsRedirect = true
-			resp.RedirectUrl = req1.URL.String()
+			r.Response.IsRedirect = true
+			r.Response.RedirectUrl = req1.URL.String()
 		}
 		return http.ErrUseLastResponse
 	}
@@ -102,71 +97,39 @@ func (r *Requests) Any(method, originUrl string, ignoreParseError bool, args ...
 		return nil, err
 	}
 
-	resp = r.GetResponse(resp) // 获取响应信息
-	if !r.Config.IsKeepSession {
-		r.InitData() // 初始化数据
-	}
+	// 获取响应信息
+	r.GetResponse()
 
 	// 返回响应
-	return resp, nil
+	return r.Response, nil
 }
 
 // Get 发送GET请求
 func (r *Requests) Get(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("get", url, false, args...)
-	return resp, err
-}
-
-// GetIgnoreParseError 发送GET请求，且忽略解析URL时遇到的错误
-func (r *Requests) GetIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("get", url, true, args...)
+	resp, err := r.Any("get", url, args...)
 	return resp, err
 }
 
 // Post 发送POST请求
 func (r *Requests) Post(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("post", url, false, args...)
-	return resp, err
-}
-
-// PostIgnoreParseError 发送POST请求，且忽略解析URL时遇到的错误
-func (r *Requests) PostIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("post", url, true, args...)
+	resp, err := r.Any("post", url, args...)
 	return resp, err
 }
 
 // Patch 发送PATCH请求
 func (r *Requests) Patch(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("patch", url, false, args...)
-	return resp, err
-}
-
-// PatchIgnoreParseError 发送PATCH请求，且忽略解析URL时遇到的错误
-func (r *Requests) PatchIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("patch", url, true, args...)
+	resp, err := r.Any("patch", url, args...)
 	return resp, err
 }
 
 // Put 发送PUT请求
 func (r *Requests) Put(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("put", url, false, args...)
-	return resp, err
-}
-
-// PutIgnoreParseError 发送PUT请求，且忽略解析URL时遇到的错误
-func (r *Requests) PutIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("put", url, true, args...)
+	resp, err := r.Any("put", url, args...)
 	return resp, err
 }
 
 // Delete 发送DELETE请求
 func (r *Requests) Delete(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("delete", url, false, args...)
-	return resp, err
-}
-
-// DeleteIgnoreParseError 发送DELETE请求，且忽略解析URL时遇到的错误
-func (r *Requests) DeleteIgnoreParseError(url string, args ...interface{}) (*Response, error) {
-	resp, err := r.Any("delete", url, true, args...)
+	resp, err := r.Any("delete", url, args...)
 	return resp, err
 }

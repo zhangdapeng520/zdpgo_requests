@@ -60,11 +60,10 @@ func NewWithConfig(config Config) *Requests {
 	if config.TmpDir == "" {
 		config.TmpDir = ".zdpgo_requests_tmp_files"
 	}
+	if config.ClientPort == 0 {
+		config.ClientPort = 33334
+	}
 	r.Config = &config // 配置对象
-
-	r.InitData()                   // 初始化数据
-	r.HttpReq = r.GetHttpRequest() // HTTP请求对象
-	r.Client = r.GetHttpClient()   // HTTP客户端对象
 
 	r.Json = zdpgo_json.New()                                                 // 实例化json对象
 	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
@@ -96,12 +95,8 @@ func (r *Requests) InitData() {
 	r.Files = make([]map[string]string, 0, 0)  // 文件列表
 	r.JsonMap = make(map[string]interface{})   // JSON数据
 
-	// 处理HTTP
-	if r.HttpReq != nil {
-		r.HttpReq.Body = nil        // 清空请求体
-		r.HttpReq.GetBody = nil     // 清空get参数
-		r.HttpReq.ContentLength = 0 // 清空内容长度
-	}
+	r.HttpReq = r.GetHttpRequest() // HTTP请求对象
+	r.Client = r.GetHttpClient()   // HTTP客户端对象
 
 	// 处理fs文件系统
 	r.IsFs = false
