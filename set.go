@@ -2,12 +2,14 @@ package zdpgo_requests
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -51,12 +53,39 @@ func (r *Requests) SetFilesAndForms() {
 		return
 	}
 
-	var b bytes.Buffer           // 处理文件
-	w := multipart.NewWriter(&b) // 创建表单对象
+	var buffer bytes.Buffer // 处理文件
+	tmpDir := r.Config.TmpDir
+	writer := multipart.NewWriter(&buffer) // 创建表单对象
+
+	// 字节类型的文件
+	if len(r.FileBytesList) > 0 {
+		for i, file := range r.FileBytesList {
+			if file.FormName == "" {
+				if i > 0 {
+					file.FormName = fmt.Sprintf("file%d", i)
+				} else {
+					file.FormName = "file"
+				}
+			}
+			if file.FormName == "" {
+				file.FileName = r.Random.Str(32)
+			}
+
+			// 先存到临时目录
+			tmpFileName := fmt.Sprintf("%s/%s", tmpDir, file.FileName)
+			err := ioutil.WriteFile(tmpFileName, file.ContentBytes, 0644)
+			if err != nil {
+				r.Log.Error("保存临时文件失败", "error", err, "fileName", file.FileName)
+				continue
+			}
+			r.Files = append(r.Files, map[string]string{
+				file.FileName: tmpFileName,
+			})
+		}
+	}
 
 	// 遍历文件列表
 	if len(r.Files) > 0 {
-		tmpDir := r.Config.TmpDir
 
 		// 如果使用了嵌入文件系统，需要将文件先转移到临时目录
 		if r.IsFs {
@@ -91,7 +120,7 @@ func (r *Requests) SetFilesAndForms() {
 				}
 
 				// 创建文件表单
-				part, err := w.CreateFormFile(k, v)
+				part, err := writer.CreateFormFile(k, v)
 				if err != nil {
 					r.Log.Error("处理要上传的文件失败", "error", err)
 				}
@@ -117,7 +146,7 @@ func (r *Requests) SetFilesAndForms() {
 	if len(r.Forms) > 0 {
 		for _, data := range r.Forms {
 			for k, v := range data {
-				err := w.WriteField(k, v)
+				err := writer.WriteField(k, v)
 				if err != nil {
 					r.Log.Error("添加表单数据失败", "error", err, "key", k, "value", v)
 				}
@@ -125,17 +154,16 @@ func (r *Requests) SetFilesAndForms() {
 		}
 	}
 
-	err := w.Close()
+	err := writer.Close()
 	if err != nil {
 		r.Log.Error("关闭表单对象失败", "error", err)
 		return
 	}
 
 	// 设置文件头："Content-Type": "multipart/form-data; boundary=------------------------7d87eceb5520850c",
-	r.HttpReq.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
-	r.HttpReq.ContentLength = int64(b.Len())
-	r.Header.Set("Content-Type", w.FormDataContentType())
-	r.Log.Debug("设置上传表单和文件成功", "ContentType", w.FormDataContentType())
+	r.HttpReq.Body = ioutil.NopCloser(bytes.NewReader(buffer.Bytes()))
+	r.HttpReq.ContentLength = int64(buffer.Len())
+	r.Header.Set("Content-Type", writer.FormDataContentType())
 }
 
 // SetForms 设置表单数据
@@ -184,4 +212,74 @@ func (r *Requests) SetTimeout(timeout int) {
 		timeout = 60
 	}
 	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
+}
+
+// SetResponse 设置响应结果
+func (r *Requests) SetResponse(resp *Response, response *http.Response) {
+	if resp == nil {
+		resp = &Response{}
+	}
+	if response == nil {
+		r.Log.Warning("HTTP响应为空，无法处理", "response", response)
+		return
+	}
+	resp.StatusCode = response.StatusCode                      // 响应状态码
+	resp.EndTime = int(time.Now().UnixNano())                  // 请求结束时间
+	resp.SpendTime = r.Response.EndTime - r.Response.StartTime // 请求消耗时间（纳秒）
+	resp.SpendTimeSeconds = r.Response.SpendTime / 1000 / 1000 / 1000
+
+	// 源端口
+	resp.ClientPort = r.ClientPort
+
+	// 记录请求详情
+	if r.Config.IsRecordRequestDetail && r.HttpResponse != nil && r.HttpResponse.Request != nil {
+		requestDump, err := httputil.DumpRequest(r.HttpResponse.Request, true)
+		if err != nil {
+			r.Log.Error("获取请求详情失败", "error", err)
+			return
+		}
+		resp.RawReqDetail = string(requestDump)
+	}
+
+	// 记录响应详情
+	if r.Config.IsRecordResponseDetail && r.HttpResponse != nil {
+		responseDump, err := httputil.DumpResponse(r.HttpResponse, true)
+		if err != nil {
+			r.Log.Error("获取响应详情失败", "error", err)
+			return
+		}
+		resp.RawRespDetail = string(responseDump)
+	}
+
+	// 响应体没有内容
+	if response.Body == nil {
+		return
+	}
+	defer response.Body.Close()
+
+	// 获取响应体真实内容
+	var Body = response.Body
+	if response.Header.Get("Content-Encoding") == "gzip" && response.Header.Get("Accept-Encoding") != "" {
+		reader, err := gzip.NewReader(Body)
+		if err != nil {
+			r.Log.Error("解压响应体内容失败", "error", err)
+			return
+		}
+		Body = reader
+	}
+
+	// 读取响应体内容
+	content, err := ioutil.ReadAll(Body)
+	if err != nil {
+		r.Log.Error("读取响应体内容失败", "error", err)
+		return
+	}
+
+	// 文本内容
+	resp.Content = content
+	resp.Text = string(resp.Content)
+
+	// 将响应结果挂载到对象上
+	r.Response = resp
+	r.HttpResponse = nil // 置空
 }

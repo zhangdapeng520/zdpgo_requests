@@ -1,11 +1,30 @@
 package zdpgo_requests
 
+import (
+	"bytes"
+)
+
 type Header map[string]string       // 请求头类型
 type Param map[string]string        // Query查询参数类型
 type Form map[string]string         // POST提交的数据
 type JsonMap map[string]interface{} // 提交JSON格式的数据
 type JsonString string              // 提交JSON格式的字符串
 type Files map[string]string        // 文件列表：name ,filename
+
+// FormFileBytes 字节类型的表单文件
+type FormFileBytes struct {
+	FormName     string `json:"form_name"`     // 表单名称
+	FileName     string `json:"file_name"`     // 文件名称
+	ContentBytes []byte `json:"content_bytes"` // 文件内容
+}
+
+// Request 请求对象
+type Request struct {
+	Method string            `json:"method"`
+	Url    string            `json:"url"`
+	Header map[string]string `json:"header"`
+	Body   *bytes.Buffer     `json:"body"`
+}
 
 // BaseAuth 基础权限校验类型
 type BaseAuth struct {

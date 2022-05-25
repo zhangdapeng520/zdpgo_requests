@@ -21,9 +21,9 @@ func (r *Requests) Any(method, originUrl string, args ...interface{}) (*Response
 		}
 
 		// 捕获异常
-		//if err := recover(); err != nil {
-		//	r.Log.Error("处理请求失败", "error", err)
-		//}
+		if err := recover(); err != nil {
+			r.Log.Error("处理请求失败", "error", err)
+		}
 	}()
 
 	// 请求的方法
@@ -44,6 +44,8 @@ func (r *Requests) Any(method, originUrl string, args ...interface{}) (*Response
 			r.Params = append(r.Params, a)
 		case Files: // 添加上传文件
 			r.Files = append(r.Files, a)
+		case FormFileBytes: // 添加上传文件
+			r.FileBytesList = append(r.FileBytesList, a)
 		case map[string]string: // 如果是map，默认当data数据处理
 			r.Forms = append(r.Forms, a)
 		case JsonMap: // 如果是JsonData结构体类型

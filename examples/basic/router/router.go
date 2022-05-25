@@ -158,11 +158,6 @@ func Download(r *zdpgo_requests.Requests) {
 		NotResult string
 	}{
 		{"https://www.twle.cn/static/i/img1.jpg", ""},
-		{"https://images3.alphacoders.com/120/1205462.jpg", ""},
-		{"https://images3.alphacoders.com/120/1205462.jpg", ""},
-		{"https://images3.alphacoders.com/120/1205462.jpg", ""},
-		{"https://images3.alphacoders.com/120/1205462.jpg", ""},
-		{"https://images3.alphacoders.com/120/1205462.jpg", ""},
 	}
 
 	for _, url := range data {
@@ -178,11 +173,6 @@ func Download(r *zdpgo_requests.Requests) {
 		IsDeleted bool
 	}{
 		{"https://www.twle.cn/static/i/img1.jpg", false},
-		{"https://images3.alphacoders.com/120/1205462.jpg", false},
-		{"https://images3.alphacoders.com/120/1205462.jpg", false},
-		{"https://images3.alphacoders.com/120/1205462.jpg", false},
-		{"https://images3.alphacoders.com/120/1205462.jpg", false},
-		{"https://images3.alphacoders.com/120/1205462.jpg", false},
 	}
 
 	for _, url := range data1 {

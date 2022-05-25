@@ -12,19 +12,21 @@ import (
 )
 
 type Requests struct {
-	HttpReq      *http.Request          // http请求对象
-	HttpResponse *http.Response         // http响应对象
-	Response     *Response              // 自定义响应对象
-	Header       *http.Header           // 请求头
-	Client       *http.Client           // 请求客户端
-	Cookies      []*http.Cookie         // cookie
-	Params       []map[string]string    // 请求参数
-	Forms        []map[string]string    // form表单数据
-	Body         string                 // 请求体内容
-	Files        []map[string]string    // 文件列表
-	JsonMap      map[string]interface{} // JSON数据
-	Fs           embed.FS               // 嵌入文件系统
-	IsFs         bool                   // 是否使用嵌入文件系统
+	HttpReq       *http.Request          // http请求对象
+	HttpResponse  *http.Response         // http响应对象
+	Response      *Response              // 自定义响应对象
+	Header        *http.Header           // 请求头
+	Client        *http.Client           // 请求客户端
+	Cookies       []*http.Cookie         // cookie
+	Params        []map[string]string    // 请求参数
+	Forms         []map[string]string    // form表单数据
+	Body          string                 // 请求体内容
+	Files         []map[string]string    // 文件列表
+	JsonMap       map[string]interface{} // JSON数据
+	FileBytesList []FormFileBytes
+	Fs            embed.FS // 嵌入文件系统
+	IsFs          bool     // 是否使用嵌入文件系统
+	ClientPort    int      // 源端口
 
 	Config *Config              // 配置对象
 	Log    *zdpgo_log.Log       // 日志对象
@@ -95,8 +97,8 @@ func (r *Requests) InitData() {
 	r.Files = make([]map[string]string, 0, 0)  // 文件列表
 	r.JsonMap = make(map[string]interface{})   // JSON数据
 
-	r.HttpReq = r.GetHttpRequest() // HTTP请求对象
-	r.Client = r.GetHttpClient()   // HTTP客户端对象
+	r.HttpReq = r.GetHttpRequest(Request{}) // HTTP请求对象
+	r.Client = r.GetHttpClient()            // HTTP客户端对象
 
 	// 处理fs文件系统
 	r.IsFs = false

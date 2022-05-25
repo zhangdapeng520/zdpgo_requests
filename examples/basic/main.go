@@ -2,6 +2,7 @@ package main
 
 import (
 	"basic/router"
+	"basic/upload"
 	"embed"
 	"github.com/zhangdapeng520/zdpgo_requests"
 )
@@ -37,6 +38,9 @@ func main() {
 	router.Text(r, textUrl)              // 发送纯文本数据
 	router.Redirect(r, redirectUrl)      // 重定向
 	router.Download(r)                   // 下载
+
+	upload.Upload(r)        // 上传普通文件
+	upload.UploadByBytes(r) // 上传字节数组
 
 	router.Timeout(r, "http://localhost:3333/long") // 超时方法
 }

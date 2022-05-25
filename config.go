@@ -23,4 +23,5 @@ type Config struct {
 	IsRecordResponseDetail bool   `yaml:"is_record_response_detail" json:"is_record_response_detail"`
 	IsKeepSession          bool   `yaml:"is_keep_session" json:"is_keep_session"`
 	ClientPort             int    `yaml:"client_port" json:"client_port"`
+	ProxyUrl               string `yaml:"proxy_url" json:"proxy_url"`
 }

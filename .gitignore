@@ -9,7 +9,7 @@
 **/.vscode
 **/logs
 **/__pycache__
-**/test*
+test*
 **/secret
 **/xj*
 **/tmp

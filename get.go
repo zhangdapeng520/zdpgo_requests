@@ -1,6 +1,7 @@
 package zdpgo_requests
 
 import (
+	"bytes"
 	"compress/gzip"
 	"crypto/tls"
 	"fmt"
@@ -15,15 +16,54 @@ import (
 	"time"
 )
 
-func (r *Requests) GetHttpRequest() *http.Request {
+func (r *Requests) GetHttpRequest(request Request) *http.Request {
+	// 请求方法
+	if request.Method == "" {
+		request.Method = "GET"
+	}
+
+	// 请求头
+	header := make(http.Header)
+	if request.Header != nil {
+		for k, v := range request.Header {
+			header.Set(k, v)
+		}
+	}
+	if header.Get("User-Agent") == "" {
+		header.Set("User-Agent", r.Config.UserAgent)
+	}
+
+	// 构造请求对象
 	req := &http.Request{
-		Method:     "GET",
-		Header:     make(http.Header),
+		Method:     request.Method,
+		Header:     header,
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 	}
 	req.Close = true // 解决EOF的bug
+
+	// 请求地址
+	if request.Url != "" {
+		urlPared, err := url.Parse(request.Url)
+		if err != nil {
+			r.Log.Error("解析URL失败", "err", err, "url", request.Url)
+			return req
+		}
+		req.URL = urlPared
+	}
+
+	// 请求体
+	if request.Body != nil {
+		req.ContentLength = int64(request.Body.Len())
+		buf := request.Body.Bytes()
+		req.GetBody = func() (io.ReadCloser, error) {
+			reader := bytes.NewReader(buf)
+			return io.NopCloser(reader), nil
+		}
+		readCloser := io.NopCloser(request.Body)
+		req.Body = readCloser
+	}
 
 	// 返回
 	return req
@@ -31,8 +71,14 @@ func (r *Requests) GetHttpRequest() *http.Request {
 
 // GetHttpClient 获取HTTP请求的客户端
 func (r *Requests) GetHttpClient() *http.Client {
+	// 获取端口
 	port := r.GetHttpPort()
-	r.Response.ClientPort = port
+	r.ClientPort = port
+	r.Response = &Response{
+		ClientPort: port,
+	}
+
+	// 绑定本地端口
 	netAddr := &net.TCPAddr{Port: port}
 	dialer := &net.Dialer{LocalAddr: netAddr}
 	tr := &http.Transport{
@@ -43,6 +89,15 @@ func (r *Requests) GetHttpClient() *http.Client {
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps},
+	}
+
+	// 设置代理
+	if r.Config.ProxyUrl != "" {
+		uri, err := url.Parse(r.Config.ProxyUrl) // 解析代理地址
+		if err != nil {
+			r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", r.Config.ProxyUrl)
+		}
+		tr.Proxy = http.ProxyURL(uri) // 设置代理
 	}
 
 	// 创建客户端
@@ -138,41 +193,30 @@ func (r *Requests) GetResponse() {
 		}
 		r.Response.RawRespDetail = string(responseDump)
 	}
-	r.GetContent(r.Response, r.HttpResponse) // 读取内容
-	return
-}
-
-// GetContent 获取响应体内容
-func (r *Requests) GetContent(resp *Response, httpResponse *http.Response) {
-	// 响应体没有内容
-	if httpResponse.Body == nil {
-		return
-	}
-
-	var (
-		err    error
-		reader io.ReadCloser
-	)
 
 	// 获取响应体真实内容
-	var Body = httpResponse.Body
-	if httpResponse.Header.Get("Content-Encoding") == "gzip" && httpResponse.Header.Get("Accept-Encoding") != "" {
-		reader, err = gzip.NewReader(Body)
+	if r.HttpResponse.Body != nil {
+		var Body = r.HttpResponse.Body
+		if r.HttpResponse.Header.Get("Content-Encoding") == "gzip" && r.HttpResponse.Header.Get("Accept-Encoding") != "" {
+			reader, err := gzip.NewReader(Body)
+			if err != nil {
+				r.Log.Error("解压响应体内容失败", "error", err)
+				return
+			}
+			Body = reader
+		}
+
+		// 读取响应体内容
+		content, err := ioutil.ReadAll(Body)
 		if err != nil {
-			r.Log.Error("解压响应体内容失败", "error", err)
+			r.Log.Error("读取响应体内容失败", "error", err)
 			return
 		}
-		Body = reader
-	}
 
-	// 读取响应体内容
-	resp.Content, err = ioutil.ReadAll(Body)
-	if err != nil {
-		r.Log.Error("读取响应体内容失败", "error", err)
+		// 文本内容
+		r.Response.Content = content
+		r.Response.Text = string(r.Response.Content)
 	}
-
-	// 文本内容
-	resp.Text = string(resp.Content)
 }
 
 // GetHttpPort 获取系统中可用的端口号
@@ -192,6 +236,5 @@ func (r *Requests) GetHttpPort() int {
 
 	// 获取端口号
 	p := l.Addr().(*net.TCPAddr).Port
-	r.Log.Debug("获取可用的HTTP端口号成功", "port", p)
 	return p
 }
