@@ -17,17 +17,24 @@ import (
 */
 
 // Upload 普通文件上传
-func (r *Requests) Upload(urlPath, formName, filePath string) {
+func (r *Requests) Upload(urlPath, formName, filePath string) (*Response, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		r.Log.Error("打开文件失败", "error", err)
-		return
+		return nil, err
 	}
-	r.UploadByBytes(urlPath, formName, filePath, fileContent)
+	response, err := r.UploadByBytes(urlPath, formName, filePath, fileContent)
+	if err != nil {
+		r.Log.Error("上传文件失败", "error", err, "urlPath", urlPath, "filePath", filePath)
+		return nil, err
+	}
+	return response, nil
 }
 
 // UploadByBytes 上传字节数组
-func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent []byte) {
+func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent []byte) (*Response, error) {
+	response := &Response{}
+
 	// 创建缓冲器
 	bodyBuffer := &bytes.Buffer{}
 
@@ -38,7 +45,7 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 	fileWriter, err := bodyWriter.CreateFormFile(formName, fileName)
 	if err != nil {
 		r.Log.Error("创建表单失败", "error", err)
-		return
+		return nil, err
 	}
 
 	// 赋值文件到写入对象
@@ -64,9 +71,11 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 	resp, err := client.Do(req)
 	if err != nil {
 		r.Log.Error("上传文件失败", "error", err)
-		return
+		return nil, err
 	}
 
 	// 设置响应结果
-	r.SetResponse(&Response{}, resp)
+	r.SetResponse(response, resp)
+
+	return response, nil
 }
