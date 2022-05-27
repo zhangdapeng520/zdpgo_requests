@@ -26,6 +26,9 @@ type Request struct {
 	Body      *bytes.Buffer          `json:"body"`
 	Query     map[string]string      `json:"query"`
 	Json      map[string]interface{} `json:"json"`
+	JsonText  string                 `json:"json_text"`
+	Form      map[string]string      `json:"form"`
+	FormText  string                 `json:"form_text"`
 	BasicAuth BasicAuth              `json:"basic_auth"`
 }
 
