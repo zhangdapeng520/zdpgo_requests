@@ -45,9 +45,27 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 
 	// 请求地址
 	if request.Url != "" {
-		urlPared, err := url.Parse(request.Url)
+		// 查询参数
+		urlPath := request.Url
+		if request.Query != nil {
+			var params []string
+			for k, v := range request.Query {
+				params = append(params, fmt.Sprintf("%s=%s", k, v))
+			}
+			queryStr := strings.Join(params, "&")
+			if strings.Contains(urlPath, "?") && strings.Contains(urlPath, "=") {
+				urlPath += "&" + queryStr
+			} else if strings.Contains(urlPath, "?") {
+				urlPath += queryStr
+			} else {
+				urlPath += "?" + queryStr
+			}
+		}
+
+		// 请求地址
+		urlPared, err := url.Parse(urlPath)
 		if err != nil {
-			r.Log.Error("解析URL失败", "err", err, "url", request.Url)
+			r.Log.Error("解析URL失败", "err", err, "url", urlPath)
 			return req
 		}
 		req.URL = urlPared

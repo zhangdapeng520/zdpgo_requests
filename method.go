@@ -2,6 +2,7 @@ package zdpgo_requests
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,6 +13,8 @@ import (
 // @param originUrl 要请求的URL地址
 // @param args 请求携带的参数
 func (r *Requests) Any(method, originUrl string, args ...interface{}) (*Response, error) {
+	response := &Response{}
+
 	r.InitData() // 初始化数据
 
 	defer func() {
@@ -100,10 +103,74 @@ func (r *Requests) Any(method, originUrl string, args ...interface{}) (*Response
 	}
 
 	// 获取响应信息
-	r.GetResponse()
+	r.SetResponse(response, r.HttpResponse)
 
 	// 返回响应
-	return r.Response, nil
+	return response, nil
+}
+
+// 不解析URL发送请求
+func (r *Requests) AnyNoParseURL(request Request) (*Response, error) {
+	defer func() {
+		// 捕获异常
+		if err := recover(); err != nil {
+			r.Log.Error("处理请求失败", "error", err)
+		}
+	}()
+
+	// 校验目标地址
+	if request.Url == "" {
+		return nil, errors.New("目标URL地址不能为空")
+	}
+
+	// 响应对象
+	response := &Response{}
+
+	// http请求对象
+	if request.Method == "" {
+		request.Method = "GET"
+	}
+	if request.Header == nil {
+		request.Header = map[string]string{
+			"User-Agent":   r.Config.UserAgent,
+			"Content-Type": r.Config.ContentType,
+		}
+	} else {
+		if _, ok := request.Header["User-Agent"]; !ok {
+			request.Header["User-Agent"] = r.Config.UserAgent
+		}
+		if _, ok := request.Header["Content-Type"]; !ok {
+			request.Header["Content-Type"] = r.Config.ContentType
+		}
+	}
+
+	req := r.GetHttpRequest(request)
+
+	// 构建请求对象
+	response.StartTime = int(time.Now().UnixNano())
+
+	// 获取客户端对象
+	client := r.GetHttpClient()
+	client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+		if len(via) > 0 {
+			response.IsRedirect = true
+			response.RedirectUrl = req1.URL.String()
+		}
+		return http.ErrUseLastResponse
+	}
+
+	// 执行请求
+	httpResponse, err := client.Do(req)
+	if err != nil {
+		r.Log.Error("发送请求失败", "error", err)
+		return nil, err
+	}
+
+	// 获取响应信息
+	r.SetResponse(response, httpResponse)
+
+	// 返回响应
+	return response, nil
 }
 
 // Get 发送GET请求

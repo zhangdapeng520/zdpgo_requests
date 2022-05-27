@@ -3,13 +3,17 @@ package zdpgo_requests
 import (
 	"crypto/tls"
 	"embed"
+	"net/http"
+	"time"
+
 	"github.com/zhangdapeng520/zdpgo_file"
 	"github.com/zhangdapeng520/zdpgo_json"
 	"github.com/zhangdapeng520/zdpgo_log"
 	"github.com/zhangdapeng520/zdpgo_random"
-	"net/http"
-	"time"
 )
+
+//go:embed test/*
+var fsObj embed.FS
 
 type Requests struct {
 	HttpReq       *http.Request          // http请求对象

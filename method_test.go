@@ -1,134 +1,154 @@
-package router
+package zdpgo_requests
 
 import (
-	"embed"
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_requests"
+	"testing"
 )
 
-/*
-@Time : 2022/5/20 9:50
-@Author : 张大鹏
-@File : router.go
-@Software: Goland2021.3.1
-@Description: 测试路由相关的用法
-*/
+var (
+	urlPath     = "http://localhost:3333/ping"
+	proxyUrl    = "http://10.1.3.12:8080"
+	uploadUrl   = "http://localhost:3333/upload"
+	jsonUrl     = "http://localhost:3333/json"
+	textUrl     = "http://localhost:3333/text"
+	redirectUrl = "https://www.baidu.com/link?url=IIZcBDQ9FSkK8wRluFkNAxjf4a7VDwHH0kFqGazjEAFGRDdnxe0HqQRdSocksxbbrpMjo7PTBeGjgnmf0aYOqN7ld6dXDBVO_jMYS16Yuy7CI5M_TMysMLpmFhF4CEjGjXOEYvjL_r9Hgz2-4jwsoa"
+	timeoutUrl  = "http://localhost:3333/long"
+	authUrl     = "http://localhost:3333/admin"
+	r           = getRequests()
+)
 
-func Any(r *zdpgo_requests.Requests, url string) {
-	resp, err := r.Any("get", url, true)
+func getRequests() *Requests {
+	r := NewWithConfig(Config{
+		Debug:    true,
+		Timeout:  5,
+		ProxyUrl: proxyUrl,
+	})
+	return r
+}
+
+func TestRequests_Any(t *testing.T) {
+	resp, err := r.Any("get", urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Any("post", url, true)
+	resp, err = r.Any("post", urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Any("put", url, true)
+	resp, err = r.Any("put", urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Any("delete", url, true)
+	resp, err = r.Any("delete", urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Any("patch", url, true)
+	resp, err = r.Any("patch", urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
-func Special(r *zdpgo_requests.Requests, url string) {
-	resp, err := r.Get(url)
+// 任意类型的方法，不解析URL路径
+func TestRequests_AnyNoParse(t *testing.T) {
+	data := []Request{
+		{"GET", urlPath, nil, nil, nil},
+		{"GET", urlPath, nil, nil, map[string]string{"a": "b"}},
+		{"POST", urlPath, nil, nil, nil},
+		{"DELETE", urlPath, nil, nil, nil},
+		{"PUT", urlPath, nil, nil, nil},
+		{"PATCH", urlPath, nil, nil, nil},
+	}
+
+	for _, request := range data {
+		response, err := r.AnyNoParseURL(request)
+		if err != nil {
+			panic(err)
+		}
+		if response.StatusCode != 200 {
+			panic("状态码不是200")
+		}
+	}
+}
+
+func TestRequests_Special(t *testing.T) {
+	resp, err := r.Get(urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Post(url)
+	resp, err = r.Post(urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Put(url)
+	resp, err = r.Put(urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Delete(url)
+	resp, err = r.Delete(urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Patch(url)
+	resp, err = r.Patch(urlPath)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
-func Proxy(r *zdpgo_requests.Requests, url, proxyUrl string) {
-	r.SetProxy(proxyUrl)
-	resp, err := r.Get(url)
-	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Post(url)
-	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Put(url)
-	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Delete(url)
-	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Patch(url)
-	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	r.RemoveProxy()
-}
-func Params(r *zdpgo_requests.Requests, url string) {
-	param := zdpgo_requests.Param{
+func TestRequests_Params(t *testing.T) {
+	param := Param{
 		"a": "11",
 		"b": "22.222",
 		"c": "abc",
 	}
-	resp, err := r.Get(url, param)
+	resp, err := r.Get(urlPath, param)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Post(url, param)
+	resp, err = r.Post(urlPath, param)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Put(url, param)
+	resp, err = r.Put(urlPath, param)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Delete(url, param)
+	resp, err = r.Delete(urlPath, param)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
-	resp, err = r.Patch(url, param)
+	resp, err = r.Patch(urlPath, param)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // UploadFS 上传fs内嵌系统文件
-func UploadFS(r *zdpgo_requests.Requests, url string, fsObj embed.FS) {
+func TestRequests_UploadFS(t *testing.T) {
 	r.IsFs = true
 	r.Fs = fsObj
-	fileMap := zdpgo_requests.Files{
+	fileMap := Files{
 		"file": "test/test.txt",
 	}
-	resp, err := r.Post(url, fileMap)
+	resp, err := r.Post(uploadUrl, fileMap)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Upload 上传普通文件
-func Upload(r *zdpgo_requests.Requests, url string) {
-	fileMap := zdpgo_requests.Files{
+func TestRequests_Upload(t *testing.T) {
+	fileMap := Files{
 		"file": "test/test1.txt",
 	}
-	resp, err := r.Post(url, fileMap)
+	resp, err := r.Post(uploadUrl, fileMap)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Header 设置请求头
-func Header(r *zdpgo_requests.Requests, url string) {
-	header := zdpgo_requests.Header{
+func TestRequests_Header(t *testing.T) {
+	header := Header{
 		"User-Agent": "zdpgo_11111",
 		"Abc-123":    "zdpgo_11111",
 	}
-	resp, err := r.Post(url, header)
+	resp, err := r.Post(urlPath, header)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Json 发送json数据
-func Json(r *zdpgo_requests.Requests, url string) {
+func TestRequests_Json(t *testing.T) {
 	// 发送JsonMap
-	jMap := zdpgo_requests.JsonMap{
+	jMap := JsonMap{
 		"User-Agent": "zdpgo_11111",
 		"Abc-123":    "zdpgo_11111",
 	}
-	resp, err := r.Post(url, jMap)
+	resp, err := r.Post(jsonUrl, jMap)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 
 	// 发送json字符串
-	var jStr zdpgo_requests.JsonString = "{\"aaabbbcc\":1122233}"
-	resp, err = r.Post(url, jStr)
+	var jStr JsonString = "{\"aaabbbcc\":1122233}"
+	resp, err = r.Post(jsonUrl, jStr)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Text 发送纯文本数据
-func Text(r *zdpgo_requests.Requests, url string) {
+func TestRequests_Text(t *testing.T) {
 	// 发送json字符串
 	var jStr = "{\"aaabbbcc\":1122233}"
-	resp, err := r.Post(url, jStr)
+	resp, err := r.Post(textUrl, jStr)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
 
 // Redirect 重定向
-func Redirect(r *zdpgo_requests.Requests, url string) {
-	resp, _ := r.Get(url)
+func TestRequests_Redirect(t *testing.T) {
+	resp, _ := r.Get(redirectUrl)
 	fmt.Println(resp.StatusCode)
 	fmt.Println(resp.IsRedirect)
 	fmt.Println(resp.RedirectUrl)
@@ -139,7 +159,7 @@ func Redirect(r *zdpgo_requests.Requests, url string) {
 }
 
 // Download 下载
-func Download(r *zdpgo_requests.Requests) {
+func TestRequests_Download(t *testing.T) {
 	// 下载为bytes
 	imgUrl := "https://www.twle.cn/static/i/img1.jpg"
 	_, err := r.DownloadToBytes(imgUrl)
@@ -192,16 +212,16 @@ func Download(r *zdpgo_requests.Requests) {
 	}
 }
 
-func Timeout(r *zdpgo_requests.Requests, url string) {
+func TestRequests_Timeout(t *testing.T) {
 	r.SetTimeout(1) // 设置超时
-	resp, err := r.Get(url)
+	resp, err := r.Get(timeoutUrl)
 	if resp != nil {
 		r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 	}
 }
 
-func Auth(r *zdpgo_requests.Requests, url string, username, password string) {
-	r.SetBasicAuth(username, password)
-	resp, err := r.Get(url)
+func TestRequests_Auth(t *testing.T) {
+	r.SetBasicAuth("zhangdapeng", "zhangdapeng")
+	resp, err := r.Get(authUrl)
 	r.Log.Debug("发送请求成功", "resp", resp, "error", err)
 }
