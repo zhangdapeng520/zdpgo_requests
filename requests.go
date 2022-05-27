@@ -2,7 +2,6 @@ package zdpgo_requests
 
 import (
 	"crypto/tls"
-	"embed"
 	"net/http"
 	"time"
 
@@ -12,25 +11,8 @@ import (
 	"github.com/zhangdapeng520/zdpgo_random"
 )
 
-//go:embed test/*
-var fsObj embed.FS
-
 type Requests struct {
-	HttpReq       *http.Request          // http请求对象
-	HttpResponse  *http.Response         // http响应对象
-	Response      *Response              // 自定义响应对象
-	Header        *http.Header           // 请求头
-	Client        *http.Client           // 请求客户端
-	Cookies       []*http.Cookie         // cookie
-	Params        []map[string]string    // 请求参数
-	Forms         []map[string]string    // form表单数据
-	Body          string                 // 请求体内容
-	Files         []map[string]string    // 文件列表
-	JsonMap       map[string]interface{} // JSON数据
-	FileBytesList []FormFileBytes
-	Fs            embed.FS // 嵌入文件系统
-	IsFs          bool     // 是否使用嵌入文件系统
-	ClientPort    int      // 源端口
+	ClientPort int // 源端口
 
 	Config *Config              // 配置对象
 	Log    *zdpgo_log.Log       // 日志对象
@@ -79,38 +61,12 @@ func NewWithConfig(config Config) *Requests {
 }
 
 // RemoveProxy 移除代理
-func (r *Requests) RemoveProxy() {
+func (r *Requests) RemoveProxy(client *http.Client) {
 	// 设置代理
-	r.Client.Transport = &http.Transport{
-		Proxy:           nil,                                                   // 设置代理
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.CheckHttps}, // 是否跳过证书校验
+	client.Transport = &http.Transport{
+		Proxy:           nil,                                                     // 设置代理
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !r.Config.IsCheckHttps}, // 是否跳过证书校验
 	}
-	r.Client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
-}
-
-// InitData 初始化数据
-func (r *Requests) InitData() {
-	r.HttpResponse = &http.Response{} // HTTP响应对象
-	r.Response = &Response{}          // 自定义响应对象
-	r.Header = &http.Header{}         // 请求头
-	r.Header.Set("Content-Type", r.Config.ContentType)
-	r.Header.Set("User-Agent", r.Config.UserAgent)
-
-	r.Params = make([]map[string]string, 0, 0) // 请求参数
-	r.Forms = make([]map[string]string, 0, 0)  // 表单数据
-	r.Files = make([]map[string]string, 0, 0)  // 文件列表
-	r.JsonMap = make(map[string]interface{})   // JSON数据
-
-	r.HttpReq = r.GetHttpRequest(Request{}) // HTTP请求对象
-	r.Client = r.GetHttpClient()            // HTTP客户端对象
-
-	// 处理fs文件系统
-	r.IsFs = false
-}
-
-// SetBasicAuth 设置基本认证信息
-func (r *Requests) SetBasicAuth(username, password string) {
-	if r.HttpReq != nil {
-		r.HttpReq.SetBasicAuth(username, password)
-	}
+	client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
+	r.Config.ProxyUrl = ""
 }

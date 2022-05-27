@@ -20,16 +20,17 @@ type FormFileBytes struct {
 
 // Request 请求对象
 type Request struct {
-	Method string                 `json:"method"`
-	Url    string                 `json:"url"`
-	Header map[string]string      `json:"header"`
-	Body   *bytes.Buffer          `json:"body"`
-	Query  map[string]string      `json:"query"`
-	Json   map[string]interface{} `json:"json"`
+	Method    string                 `json:"method"`
+	Url       string                 `json:"url"`
+	Header    map[string]string      `json:"header"`
+	Body      *bytes.Buffer          `json:"body"`
+	Query     map[string]string      `json:"query"`
+	Json      map[string]interface{} `json:"json"`
+	BasicAuth BasicAuth              `json:"basic_auth"`
 }
 
 // BaseAuth 基础权限校验类型
-type BaseAuth struct {
+type BasicAuth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
