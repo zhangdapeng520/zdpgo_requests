@@ -20,11 +20,12 @@ type FormFileBytes struct {
 
 // Request 请求对象
 type Request struct {
-	Method string            `json:"method"`
-	Url    string            `json:"url"`
-	Header map[string]string `json:"header"`
-	Body   *bytes.Buffer     `json:"body"`
-	Query  map[string]string `json:"query"`
+	Method string                 `json:"method"`
+	Url    string                 `json:"url"`
+	Header map[string]string      `json:"header"`
+	Body   *bytes.Buffer          `json:"body"`
+	Query  map[string]string      `json:"query"`
+	Json   map[string]interface{} `json:"json"`
 }
 
 // BaseAuth 基础权限校验类型

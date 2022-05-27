@@ -42,16 +42,36 @@ func TestRequests_Any(t *testing.T) {
 // 任意类型的方法，不解析URL路径
 func TestRequests_AnyNoParse(t *testing.T) {
 	data := []Request{
-		{"GET", urlPath, nil, nil, nil},
-		{"GET", urlPath, nil, nil, map[string]string{"a": "b"}},
-		{"POST", urlPath, nil, nil, nil},
-		{"DELETE", urlPath, nil, nil, nil},
-		{"PUT", urlPath, nil, nil, nil},
-		{"PATCH", urlPath, nil, nil, nil},
+		{"GET", urlPath, nil, nil, nil, nil},
+		{"GET", urlPath, nil, nil, map[string]string{"a": "b"}, nil},
+		{"POST", urlPath, nil, nil, nil, nil},
+		{"DELETE", urlPath, nil, nil, nil, nil},
+		{"PUT", urlPath, nil, nil, nil, nil},
+		{"PATCH", urlPath, nil, nil, nil, nil},
 	}
 
 	for _, request := range data {
 		response, err := r.AnyNoParseURL(request)
+		if err != nil {
+			panic(err)
+		}
+		if response.StatusCode != 200 {
+			panic("状态码不是200")
+		}
+	}
+}
+
+func TestRequests_AnyJson(t *testing.T) {
+	jsonData := map[string]interface{}{"a": 1, "b": 2.2, "c": "33", "d": true}
+	data := []Request{
+		{"POST", jsonUrl, nil, nil, nil, jsonData},
+		{"DELETE", jsonUrl, nil, nil, nil, jsonData},
+		{"PUT", jsonUrl, nil, nil, nil, jsonData},
+		{"PATCH", jsonUrl, nil, nil, nil, jsonData},
+	}
+
+	for _, request := range data {
+		response, err := r.AnyJson(request)
 		if err != nil {
 			panic(err)
 		}
