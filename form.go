@@ -23,12 +23,13 @@ type Request struct {
 	Method    string                 `json:"method"`
 	Url       string                 `json:"url"`
 	Header    map[string]string      `json:"header"`
-	Body      *bytes.Buffer          `json:"body"`
+	Body      *bytes.Buffer          `json:"body"` // 参考UploadByBytes的实现
 	Query     map[string]string      `json:"query"`
 	Json      map[string]interface{} `json:"json"`
 	JsonText  string                 `json:"json_text"`
 	Form      map[string]string      `json:"form"`
 	FormText  string                 `json:"form_text"`
+	Text      string                 `json:"text"`
 	BasicAuth BasicAuth              `json:"basic_auth"`
 }
 

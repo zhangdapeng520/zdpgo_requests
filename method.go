@@ -222,12 +222,14 @@ func (r *Requests) AnyForm(request Request) (*Response, error) {
 
 	// 获取客户端对象
 	client := r.GetHttpClient()
-	client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-		if len(via) > 0 {
-			response.IsRedirect = true
-			response.RedirectUrl = req1.URL.String()
+	if r.Config.IsCheckRedirect {
+		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+			if len(via) > 0 {
+				response.IsRedirect = true
+				response.RedirectUrl = req1.URL.String()
+			}
+			return http.ErrUseLastResponse
 		}
-		return http.ErrUseLastResponse
 	}
 
 	// 执行请求
@@ -244,6 +246,7 @@ func (r *Requests) AnyForm(request Request) (*Response, error) {
 	return response, nil
 }
 
+// 任意方法发送纯文本数据
 func (r *Requests) AnyText(request Request) (*Response, error) {
 	defer func() {
 		// 捕获异常
@@ -267,20 +270,20 @@ func (r *Requests) AnyText(request Request) (*Response, error) {
 	if request.Header == nil {
 		request.Header = map[string]string{
 			"User-Agent":   r.Config.UserAgent,
-			"Content-Type": r.Config.ContentType,
+			"Content-Type": "text/plain",
 		}
 	} else {
 		if _, ok := request.Header["User-Agent"]; !ok {
 			request.Header["User-Agent"] = r.Config.UserAgent
 		}
 		if _, ok := request.Header["Content-Type"]; !ok {
-			request.Header["Content-Type"] = r.Config.ContentType
+			request.Header["Content-Type"] = "text/plain"
 		}
 	}
 	req := r.GetHttpRequest(request)
 
-	// 处理json数据
-	bodyReader := ioutil.NopCloser(strings.NewReader(request.JsonText))
+	// 处理文本数据
+	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
 	req.Body = bodyReader
 
 	// 构建请求对象
@@ -288,12 +291,14 @@ func (r *Requests) AnyText(request Request) (*Response, error) {
 
 	// 获取客户端对象
 	client := r.GetHttpClient()
-	client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-		if len(via) > 0 {
-			response.IsRedirect = true
-			response.RedirectUrl = req1.URL.String()
+	if r.Config.IsCheckRedirect {
+		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+			if len(via) > 0 {
+				response.IsRedirect = true
+				response.RedirectUrl = req1.URL.String()
+			}
+			return http.ErrUseLastResponse
 		}
-		return http.ErrUseLastResponse
 	}
 
 	// 执行请求
