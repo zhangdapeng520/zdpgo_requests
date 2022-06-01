@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// 不解析URL发送请求
+// Any 任意方法的请求
 func (r *Requests) Any(request Request) (*Response, error) {
 	defer func() {
 		// 捕获异常
@@ -77,7 +77,7 @@ func (r *Requests) Any(request Request) (*Response, error) {
 	return response, nil
 }
 
-// 不解析URL发送请求，携带JSON数据
+// AnyJson 任意方法发送JSON请求
 func (r *Requests) AnyJson(request Request) (*Response, error) {
 	defer func() {
 		// 捕获异常
@@ -157,7 +157,7 @@ func (r *Requests) AnyJson(request Request) (*Response, error) {
 	return response, nil
 }
 
-// 不解析URL发送请求，携带JSON数据
+// AnyForm 任意方法发送表单请求
 func (r *Requests) AnyForm(request Request) (*Response, error) {
 	defer func() {
 		// 捕获异常
@@ -246,7 +246,7 @@ func (r *Requests) AnyForm(request Request) (*Response, error) {
 	return response, nil
 }
 
-// 任意方法发送纯文本数据
+// AnyText 任意方法发送纯文本数据
 func (r *Requests) AnyText(request Request) (*Response, error) {
 	defer func() {
 		// 捕获异常
@@ -306,6 +306,71 @@ func (r *Requests) AnyText(request Request) (*Response, error) {
 	if err != nil {
 		r.Log.Error("发送请求失败", "error", err)
 		return nil, err
+	}
+
+	// 获取响应信息
+	r.SetResponse(response, httpResponse)
+
+	// 返回响应
+	return response, nil
+}
+
+// AnyTextMustResponse 发送任意方法的文本请求，且必然有Response
+func (r *Requests) AnyTextMustResponse(request Request) (*Response, error) {
+	defer func() {
+		// 捕获异常
+		if err := recover(); err != nil {
+			r.Log.Error("处理请求失败", "error", err)
+		}
+	}()
+
+	// 响应对象
+	response := &Response{}
+
+	// http请求对象
+	if request.Method == "" {
+		request.Method = "GET"
+	}
+	if request.Header == nil {
+		request.Header = map[string]string{
+			"User-Agent":   r.Config.UserAgent,
+			"Content-Type": "text/plain",
+		}
+	} else {
+		if _, ok := request.Header["User-Agent"]; !ok {
+			request.Header["User-Agent"] = r.Config.UserAgent
+		}
+		if _, ok := request.Header["Content-Type"]; !ok {
+			request.Header["Content-Type"] = "text/plain"
+		}
+	}
+	req := r.GetHttpRequest(request)
+
+	// 处理文本数据
+	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
+	req.Body = bodyReader
+
+	// 构建请求对象
+	response.StartTime = int(time.Now().UnixNano())
+
+	// 获取客户端对象
+	client := r.GetHttpClient()
+	if r.Config.IsCheckRedirect {
+		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+			if len(via) > 0 {
+				response.IsRedirect = true
+				response.RedirectUrl = req1.URL.String()
+			}
+			return http.ErrUseLastResponse
+		}
+	}
+	response.ClientPort = r.ClientPort
+
+	// 执行请求
+	httpResponse, err := client.Do(req)
+	if err != nil {
+		r.Log.Error("发送请求失败", "error", err)
+		return response, err
 	}
 
 	// 获取响应信息

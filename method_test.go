@@ -25,6 +25,7 @@ func getRequests() *Requests {
 // 任意类型的方法，不解析URL路径
 func TestRequests_Any(t *testing.T) {
 	var data []Request
+	urlPath := "http://10.1.3.12:8888/payload/"
 	data = append(data, Request{
 		Method: "GET",
 		Url:    urlPath,
@@ -273,6 +274,74 @@ func TestRequests_AnyText(t *testing.T) {
 		}
 		if response.StatusCode != 200 {
 			panic("状态码不是200")
+		}
+	}
+}
+
+func TestRequests_AnyTextMustResponse(t *testing.T) {
+	r = NewWithConfig(Config{
+		Debug:   true,
+		Timeout: 5,
+	})
+	urlPath = "http://10.1.2.10/mphLVsmGXesBQxFb/"
+	jsonText := "任意的文本123 abc ABC &……*"
+	jsonHeader := map[string]string{"Content-Type": "application/json"}
+	var data []Request
+	data = append(data, Request{
+		Method: "POST",
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+
+	data = append(data, Request{
+		Method: "DELETE",
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+	data = append(data, Request{
+		Method: "PUT",
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+	data = append(data, Request{
+		Method:   "PATCH",
+		Url:      urlPath,
+		JsonText: jsonText,
+	})
+
+	data = append(data, Request{
+		Method: "POST",
+		Header: jsonHeader,
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+
+	data = append(data, Request{
+		Method: "DELETE",
+		Header: jsonHeader,
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+	data = append(data, Request{
+		Method: "PUT",
+		Header: jsonHeader,
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+	data = append(data, Request{
+		Method: "PATCH",
+		Header: jsonHeader,
+		Url:    urlPath,
+		Text:   jsonText,
+	})
+
+	for _, request := range data {
+		response, _ := r.AnyTextMustResponse(request)
+		if response == nil {
+			panic("response不能为nil")
+		}
+		if response.ClientPort == 0 {
+			panic("源端口不能为空")
 		}
 	}
 }
