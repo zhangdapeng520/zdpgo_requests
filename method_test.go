@@ -14,7 +14,7 @@ var (
 )
 
 func getRequests() *Requests {
-	r := NewWithConfig(Config{
+	r := NewWithConfig(&Config{
 		Debug:    true,
 		Timeout:  5,
 		ProxyUrl: proxyUrl,
@@ -279,7 +279,7 @@ func TestRequests_AnyText(t *testing.T) {
 }
 
 func TestRequests_AnyTextMustResponse(t *testing.T) {
-	r = NewWithConfig(Config{
+	r = NewWithConfig(&Config{
 		Debug:   true,
 		Timeout: 5,
 	})
