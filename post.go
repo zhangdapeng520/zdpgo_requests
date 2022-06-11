@@ -55,6 +55,38 @@ func (r *Requests) PostEcc(targetUrl, jsonStr string) (*Response, error) {
 	return response, nil
 }
 
+func (r *Requests) PostAes(targetUrl, jsonStr string) (*Response, error) {
+	// 加密数据
+	encryptData, err := r.Password.Aes.Encrypt([]byte(jsonStr))
+	if err != nil {
+		r.Log.Error("AES加密数据失败", "error", err)
+		return nil, err
+	}
+
+	// 发送请求
+	response, err := r.AnyText(Request{
+		Method: "POST",
+		Url:    targetUrl,
+		Text:   string(encryptData),
+	})
+	if err != nil {
+		r.Log.Error("发送JSON请求失败", "error", err)
+		return nil, err
+	}
+
+	// AES解密响应数据
+	decryptBytes, err := r.Password.Aes.Decrypt(response.Content)
+	if err != nil {
+		r.Log.Error("ECC解密响应数据失败", "error", err)
+		return nil, err
+	}
+	response.Content = decryptBytes
+	response.Text = string(decryptBytes)
+
+	// 返回响应
+	return response, nil
+}
+
 // PostEccText POST提交ECC加密的纯文本
 func (r *Requests) PostEccText(targetUrl, data string) (*Response, error) {
 	// 获取ECC加密对象
