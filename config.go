@@ -23,9 +23,6 @@ type Config struct {
 	IsRecordResponseDetail bool      `yaml:"is_record_response_detail" json:"is_record_response_detail"`
 	IsKeepSession          bool      `yaml:"is_keep_session" json:"is_keep_session"`
 	IsRandomUserAgent      bool      `yaml:"is_random_user_agent" json:"is_random_user_agent"` // 随机的用户代理
-	IsText                 bool      `yaml:"is_text" json:"is_text"`                           // 纯文本类型
-	IsForm                 bool      `yaml:"is_form" json:"is_form"`                           // 表单类型
-	IsJson                 bool      `yaml:"is_form" json:"is_form"`                           // 表单类型
 	ProxyUrl               string    `yaml:"is_json" json:"is_json"`
 	Ecc                    EccConfig `yaml:"ecc" json:"ecc"`
 }

@@ -2,11 +2,7 @@ package zdpgo_requests
 
 import (
 	"encoding/json"
-	"errors"
-	"io"
-	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -98,9 +94,9 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 			}
 		}
 		if _, ok := request.Header["Content-Type"]; !ok {
-			if r.Config.IsText {
+			if request.IsText {
 				request.Header["Content-Type"] = "text/plain"
-			} else if r.Config.IsForm {
+			} else if request.IsForm {
 				request.Header["Content-Type"] = "application/x-www-form-urlencoded"
 			} else {
 				request.Header["Content-Type"] = r.Config.ContentType
@@ -139,249 +135,249 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 }
 
 // AnyJson 任意方法发送JSON请求
-func (r *Requests) AnyJson(request Request) (*Response, error) {
-	defer func() {
-		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
-	}()
+// func (r *Requests) AnyJson(request Request) (*Response, error) {
+// 	defer func() {
+// 		// 捕获异常
+// 		if err := recover(); err != nil {
+// 			r.Log.Error("处理请求失败", "error", err)
+// 		}
+// 	}()
 
-	// 校验方法
-	if request.Method == "" {
-		request.Method = "POST"
-	}
+// 	// 校验方法
+// 	if request.Method == "" {
+// 		request.Method = "POST"
+// 	}
 
-	// 校验目标地址
-	if request.Url == "" {
-		return nil, errors.New("目标URL地址不能为空")
-	}
+// 	// 校验目标地址
+// 	if request.Url == "" {
+// 		return nil, errors.New("目标URL地址不能为空")
+// 	}
 
-	// 响应对象
-	response := &Response{}
+// 	// 响应对象
+// 	response := &Response{}
 
-	// http请求对象
-	if request.Header == nil {
-		request.Header = map[string]string{
-			"User-Agent":   r.Config.UserAgent,
-			"Content-Type": "application/json",
-		}
-	} else {
-		if _, ok := request.Header["User-Agent"]; !ok {
-			request.Header["User-Agent"] = r.Config.UserAgent
-		}
+// 	// http请求对象
+// 	if request.Header == nil {
+// 		request.Header = map[string]string{
+// 			"User-Agent":   r.Config.UserAgent,
+// 			"Content-Type": "application/json",
+// 		}
+// 	} else {
+// 		if _, ok := request.Header["User-Agent"]; !ok {
+// 			request.Header["User-Agent"] = r.Config.UserAgent
+// 		}
 
-	}
-	if r.Config.IsText {
-		request.Header["Content-Type"] = "application/json"
-	} else if r.Config.IsForm {
-		request.Header["Content-Type"] = "application/json"
-	} else {
-		request.Header["Content-Type"] = "application/json"
-	}
+// 	}
+// 	if r.Config.IsText {
+// 		request.Header["Content-Type"] = "application/json"
+// 	} else if r.Config.IsForm {
+// 		request.Header["Content-Type"] = "application/json"
+// 	} else {
+// 		request.Header["Content-Type"] = "application/json"
+// 	}
 
-	req := r.GetHttpRequest(request)
+// 	req := r.GetHttpRequest(request)
 
-	// 处理json数据
-	if request.Json != nil {
-		dataByte, err := json.Marshal(request.Json)
-		if err != nil {
-			r.Log.Error("解析JSON数据失败", "error", err, "data", request.Json)
-			return nil, err
-		}
-		bodyReader := ioutil.NopCloser(strings.NewReader(string(dataByte)))
-		req.Body = bodyReader
-	} else if request.JsonText != "" {
-		bodyReader := ioutil.NopCloser(strings.NewReader(request.JsonText))
-		req.Body = bodyReader
-	} else {
-		return nil, errors.New("JSON数据不能为空")
-	}
+// 	// 处理json数据
+// 	if request.Json != nil {
+// 		dataByte, err := json.Marshal(request.Json)
+// 		if err != nil {
+// 			r.Log.Error("解析JSON数据失败", "error", err, "data", request.Json)
+// 			return nil, err
+// 		}
+// 		bodyReader := ioutil.NopCloser(strings.NewReader(string(dataByte)))
+// 		req.Body = bodyReader
+// 	} else if request.JsonText != "" {
+// 		bodyReader := ioutil.NopCloser(strings.NewReader(request.JsonText))
+// 		req.Body = bodyReader
+// 	} else {
+// 		return nil, errors.New("JSON数据不能为空")
+// 	}
 
-	// 构建请求对象
-	response.StartTime = int(time.Now().UnixNano())
+// 	// 构建请求对象
+// 	response.StartTime = int(time.Now().UnixNano())
 
-	// 获取客户端对象
-	client := r.GetHttpClient()
-	client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-		if len(via) > 0 {
-			response.IsRedirect = true
-			response.RedirectUrl = req1.URL.String()
-		}
-		return http.ErrUseLastResponse
-	}
+// 	// 获取客户端对象
+// 	client := r.GetHttpClient()
+// 	client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+// 		if len(via) > 0 {
+// 			response.IsRedirect = true
+// 			response.RedirectUrl = req1.URL.String()
+// 		}
+// 		return http.ErrUseLastResponse
+// 	}
 
-	// 执行请求
-	httpResponse, err := client.Do(req)
-	if err != nil {
-		r.Log.Error("发送请求失败", "error", err)
-		return nil, err
-	}
+// 	// 执行请求
+// 	httpResponse, err := client.Do(req)
+// 	if err != nil {
+// 		r.Log.Error("发送请求失败", "error", err)
+// 		return nil, err
+// 	}
 
-	// 获取响应信息
-	r.SetResponse(response, httpResponse)
+// 	// 获取响应信息
+// 	r.SetResponse(response, httpResponse)
 
-	// 返回响应
-	return response, nil
-}
+// 	// 返回响应
+// 	return response, nil
+// }
 
 // AnyForm 任意方法发送表单请求
-func (r *Requests) AnyForm(request Request) (*Response, error) {
-	defer func() {
-		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
-	}()
+// func (r *Requests) AnyForm(request Request) (*Response, error) {
+// 	defer func() {
+// 		// 捕获异常
+// 		if err := recover(); err != nil {
+// 			r.Log.Error("处理请求失败", "error", err)
+// 		}
+// 	}()
 
-	// 校验方法
-	if request.Method == "" {
-		request.Method = "POST"
-	}
+// 	// 校验方法
+// 	if request.Method == "" {
+// 		request.Method = "POST"
+// 	}
 
-	// 校验目标地址
-	if request.Url == "" {
-		return nil, errors.New("目标URL地址不能为空")
-	}
+// 	// 校验目标地址
+// 	if request.Url == "" {
+// 		return nil, errors.New("目标URL地址不能为空")
+// 	}
 
-	// 响应对象
-	response := &Response{}
+// 	// 响应对象
+// 	response := &Response{}
 
-	// http请求对象
-	if request.Header == nil {
-		request.Header = map[string]string{
-			"User-Agent":   r.Config.UserAgent,
-			"Content-Type": "application/x-www-form-urlencoded",
-		}
-	} else {
-		if _, ok := request.Header["User-Agent"]; !ok {
-			request.Header["User-Agent"] = r.Config.UserAgent
-		}
-		request.Header["Content-Type"] = "application/x-www-form-urlencoded"
-	}
+// 	// http请求对象
+// 	if request.Header == nil {
+// 		request.Header = map[string]string{
+// 			"User-Agent":   r.Config.UserAgent,
+// 			"Content-Type": "application/x-www-form-urlencoded",
+// 		}
+// 	} else {
+// 		if _, ok := request.Header["User-Agent"]; !ok {
+// 			request.Header["User-Agent"] = r.Config.UserAgent
+// 		}
+// 		request.Header["Content-Type"] = "application/x-www-form-urlencoded"
+// 	}
 
-	req := r.GetHttpRequest(request)
+// 	req := r.GetHttpRequest(request)
 
-	// 处理json数据
-	if request.Form != nil {
-		data := make(url.Values)
-		for key, value := range request.Form {
-			data[key] = []string{value}
-		}
-		bodyReader := strings.NewReader(data.Encode())
-		req.ContentLength = int64(bodyReader.Len())
-		req.GetBody = func() (io.ReadCloser, error) {
-			return io.NopCloser(bodyReader), nil
-		}
-		req.Body = io.NopCloser(bodyReader)
-	} else if request.FormText != "" {
-		bodyReader := strings.NewReader(request.FormText)
-		req.ContentLength = int64(bodyReader.Len())
-		req.GetBody = func() (io.ReadCloser, error) {
-			return io.NopCloser(bodyReader), nil
-		}
-		req.Body = io.NopCloser(bodyReader)
-	} else {
-		return nil, errors.New("Form表单数据不能为空")
-	}
+// 	// 处理json数据
+// 	if request.Form != nil {
+// 		data := make(url.Values)
+// 		for key, value := range request.Form {
+// 			data[key] = []string{value}
+// 		}
+// 		bodyReader := strings.NewReader(data.Encode())
+// 		req.ContentLength = int64(bodyReader.Len())
+// 		req.GetBody = func() (io.ReadCloser, error) {
+// 			return io.NopCloser(bodyReader), nil
+// 		}
+// 		req.Body = io.NopCloser(bodyReader)
+// 	} else if request.FormText != "" {
+// 		bodyReader := strings.NewReader(request.FormText)
+// 		req.ContentLength = int64(bodyReader.Len())
+// 		req.GetBody = func() (io.ReadCloser, error) {
+// 			return io.NopCloser(bodyReader), nil
+// 		}
+// 		req.Body = io.NopCloser(bodyReader)
+// 	} else {
+// 		return nil, errors.New("Form表单数据不能为空")
+// 	}
 
-	// 构建请求对象
-	response.StartTime = int(time.Now().UnixNano())
+// 	// 构建请求对象
+// 	response.StartTime = int(time.Now().UnixNano())
 
-	// 获取客户端对象
-	client := r.GetHttpClient()
-	if r.Config.IsCheckRedirect {
-		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-			if len(via) > 0 {
-				response.IsRedirect = true
-				response.RedirectUrl = req1.URL.String()
-			}
-			return http.ErrUseLastResponse
-		}
-	}
+// 	// 获取客户端对象
+// 	client := r.GetHttpClient()
+// 	if r.Config.IsCheckRedirect {
+// 		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+// 			if len(via) > 0 {
+// 				response.IsRedirect = true
+// 				response.RedirectUrl = req1.URL.String()
+// 			}
+// 			return http.ErrUseLastResponse
+// 		}
+// 	}
 
-	// 执行请求
-	httpResponse, err := client.Do(req)
-	if err != nil {
-		r.Log.Error("发送请求失败", "error", err)
-		return nil, err
-	}
+// 	// 执行请求
+// 	httpResponse, err := client.Do(req)
+// 	if err != nil {
+// 		r.Log.Error("发送请求失败", "error", err)
+// 		return nil, err
+// 	}
 
-	// 获取响应信息
-	r.SetResponse(response, httpResponse)
+// 	// 获取响应信息
+// 	r.SetResponse(response, httpResponse)
 
-	// 返回响应
-	return response, nil
-}
+// 	// 返回响应
+// 	return response, nil
+// }
 
 // AnyText 任意方法发送纯文本数据
-func (r *Requests) AnyText(request Request) (*Response, error) {
-	defer func() {
-		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
-	}()
+// func (r *Requests) AnyText(request Request) (*Response, error) {
+// 	defer func() {
+// 		// 捕获异常
+// 		if err := recover(); err != nil {
+// 			r.Log.Error("处理请求失败", "error", err)
+// 		}
+// 	}()
 
-	// 校验目标地址
-	if request.Url == "" {
-		return nil, errors.New("目标URL地址不能为空")
-	}
+// 	// 校验目标地址
+// 	if request.Url == "" {
+// 		return nil, errors.New("目标URL地址不能为空")
+// 	}
 
-	// 响应对象
-	response := &Response{}
+// 	// 响应对象
+// 	response := &Response{}
 
-	// http请求对象
-	if request.Method == "" {
-		request.Method = "GET"
-	}
-	if request.Header == nil {
-		request.Header = map[string]string{
-			"User-Agent":   r.Config.UserAgent,
-			"Content-Type": "text/plain",
-		}
-	} else {
-		if _, ok := request.Header["User-Agent"]; !ok {
-			request.Header["User-Agent"] = r.Config.UserAgent
-		}
-		if _, ok := request.Header["Content-Type"]; !ok {
-			request.Header["Content-Type"] = "text/plain"
-		}
-	}
-	req := r.GetHttpRequest(request)
+// 	// http请求对象
+// 	if request.Method == "" {
+// 		request.Method = "GET"
+// 	}
+// 	if request.Header == nil {
+// 		request.Header = map[string]string{
+// 			"User-Agent":   r.Config.UserAgent,
+// 			"Content-Type": "text/plain",
+// 		}
+// 	} else {
+// 		if _, ok := request.Header["User-Agent"]; !ok {
+// 			request.Header["User-Agent"] = r.Config.UserAgent
+// 		}
+// 		if _, ok := request.Header["Content-Type"]; !ok {
+// 			request.Header["Content-Type"] = "text/plain"
+// 		}
+// 	}
+// 	req := r.GetHttpRequest(request)
 
-	// 处理文本数据
-	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
-	req.Body = bodyReader
+// 	// 处理文本数据
+// 	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
+// 	req.Body = bodyReader
 
-	// 构建请求对象
-	response.StartTime = int(time.Now().UnixNano())
+// 	// 构建请求对象
+// 	response.StartTime = int(time.Now().UnixNano())
 
-	// 获取客户端对象
-	client := r.GetHttpClient()
-	if r.Config.IsCheckRedirect {
-		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-			if len(via) > 0 {
-				response.IsRedirect = true
-				response.RedirectUrl = req1.URL.String()
-			}
-			return http.ErrUseLastResponse
-		}
-	}
+// 	// 获取客户端对象
+// 	client := r.GetHttpClient()
+// 	if r.Config.IsCheckRedirect {
+// 		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+// 			if len(via) > 0 {
+// 				response.IsRedirect = true
+// 				response.RedirectUrl = req1.URL.String()
+// 			}
+// 			return http.ErrUseLastResponse
+// 		}
+// 	}
 
-	// 执行请求
-	httpResponse, err := client.Do(req)
-	if err != nil {
-		r.Log.Error("发送请求失败", "error", err)
-		return nil, err
-	}
+// 	// 执行请求
+// 	httpResponse, err := client.Do(req)
+// 	if err != nil {
+// 		r.Log.Error("发送请求失败", "error", err)
+// 		return nil, err
+// 	}
 
-	// 获取响应信息
-	r.SetResponse(response, httpResponse)
+// 	// 获取响应信息
+// 	r.SetResponse(response, httpResponse)
 
-	// 返回响应
-	return response, nil
-}
+// 	// 返回响应
+// 	return response, nil
+// }
 
 // Get 发送GET请求
 func (r *Requests) Get(targetUrl string) (*Response, error) {
@@ -392,85 +388,85 @@ func (r *Requests) Post(targetUrl string) (*Response, error) {
 	return r.Any("POST", targetUrl)
 }
 
-var (
-	FirstTargetCode = make(map[string]int)
-)
+// var (
+// 	FirstTargetCode = make(map[string]int)
+// )
 
-// AnyCompareStatus 发送任意方法的文本请求，且必然有Response,会发两次请求，比较状态码
-func (r *Requests) AnyCompareStatus(method, firstTarget, secondTarget string) (*Response, error) {
-	request := &Request{}
+// // AnyCompareStatus 发送任意方法的文本请求，且必然有Response,会发两次请求，比较状态码
+// func (r *Requests) AnyCompareStatus(method, firstTarget, secondTarget string) (*Response, error) {
+// 	request := &Request{}
 
-	defer func() {
-		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
-	}()
+// 	defer func() {
+// 		// 捕获异常
+// 		if err := recover(); err != nil {
+// 			r.Log.Error("处理请求失败", "error", err)
+// 		}
+// 	}()
 
-	r.Get(firstTarget)
+// 	r.Get(firstTarget)
 
-	// 响应对象
-	response := &Response{}
+// 	// 响应对象
+// 	response := &Response{}
 
-	// http请求对象
-	if request.Method == "" {
-		request.Method = "GET"
-	}
-	if request.Header == nil {
-		request.Header = map[string]string{
-			"Content-Type": "text/plain",
-			"X-Author":     r.Config.Author,
-		}
-		if r.Config.IsRandomUserAgent {
-			request.Header["User-Agent"] = r.GetRandomUserAgent()
-		} else {
-			request.Header["User-Agent"] = r.Config.UserAgent
-		}
-	} else {
-		if _, ok := request.Header["User-Agent"]; !ok {
-			request.Header["User-Agent"] = r.Config.UserAgent
-		}
-		if _, ok := request.Header["Content-Type"]; !ok {
-			request.Header["Content-Type"] = "text/plain"
-		}
-	}
+// 	// http请求对象
+// 	if request.Method == "" {
+// 		request.Method = "GET"
+// 	}
+// 	if request.Header == nil {
+// 		request.Header = map[string]string{
+// 			"Content-Type": "text/plain",
+// 			"X-Author":     r.Config.Author,
+// 		}
+// 		if r.Config.IsRandomUserAgent {
+// 			request.Header["User-Agent"] = r.GetRandomUserAgent()
+// 		} else {
+// 			request.Header["User-Agent"] = r.Config.UserAgent
+// 		}
+// 	} else {
+// 		if _, ok := request.Header["User-Agent"]; !ok {
+// 			request.Header["User-Agent"] = r.Config.UserAgent
+// 		}
+// 		if _, ok := request.Header["Content-Type"]; !ok {
+// 			request.Header["Content-Type"] = "text/plain"
+// 		}
+// 	}
 
-	// 第一个请求对象
-	request.Url = firstTarget
-	req := r.GetHttpRequest(*request)
+// 	// 第一个请求对象
+// 	request.Url = firstTarget
+// 	req := r.GetHttpRequest(*request)
 
-	// 处理文本数据
-	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
-	req.Body = bodyReader
+// 	// 处理文本数据
+// 	bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
+// 	req.Body = bodyReader
 
-	// 构建请求对象
-	response.StartTime = int(time.Now().UnixNano())
+// 	// 构建请求对象
+// 	response.StartTime = int(time.Now().UnixNano())
 
-	// 获取客户端对象
-	client := r.GetHttpClient()
-	if r.Config.IsCheckRedirect {
-		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
-			if len(via) > 0 {
-				response.IsRedirect = true
-				response.RedirectUrl = req1.URL.String()
-			}
-			return http.ErrUseLastResponse
-		}
-	}
-	response.ClientPort = r.ClientPort
+// 	// 获取客户端对象
+// 	client := r.GetHttpClient()
+// 	if r.Config.IsCheckRedirect {
+// 		client.CheckRedirect = func(req1 *http.Request, via []*http.Request) error {
+// 			if len(via) > 0 {
+// 				response.IsRedirect = true
+// 				response.RedirectUrl = req1.URL.String()
+// 			}
+// 			return http.ErrUseLastResponse
+// 		}
+// 	}
+// 	response.ClientPort = r.ClientPort
 
-	// 执行第一次请求
+// 	// 执行第一次请求
 
-	// 执行第二次请求
-	httpResponse, err := client.Do(req)
-	if err != nil {
-		r.Log.Error("发送请求失败", "error", err)
-		return response, err
-	}
+// 	// 执行第二次请求
+// 	httpResponse, err := client.Do(req)
+// 	if err != nil {
+// 		r.Log.Error("发送请求失败", "error", err)
+// 		return response, err
+// 	}
 
-	// 获取响应信息
-	r.SetResponse(response, httpResponse)
+// 	// 获取响应信息
+// 	r.SetResponse(response, httpResponse)
 
-	// 返回响应
-	return response, nil
-}
+// 	// 返回响应
+// 	return response, nil
+// }

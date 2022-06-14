@@ -1,9 +1,5 @@
 package zdpgo_requests
 
-import (
-	"testing"
-)
-
 var (
 	urlPath  = "http://localhost:3333/ping"
 	proxyUrl = "http://127.0.0.1:8080"
@@ -82,198 +78,198 @@ func getRequests() *Requests {
 // 	}
 // }
 
-func TestRequests_AnyJson(t *testing.T) {
-	jsonData := map[string]interface{}{"a": 1, "b": 2.2, "c": "33", "d": true}
-	jsonText := "{\"text\":\"Hello\"}"
-	jsonHeader := map[string]string{"Content-Type": "application/json"}
-	var data []Request
-	data = append(data, Request{
-		Method: "POST",
-		Url:    jsonUrl,
-		Json:   jsonData,
-	})
+// func TestRequests_AnyJson(t *testing.T) {
+// 	jsonData := map[string]interface{}{"a": 1, "b": 2.2, "c": "33", "d": true}
+// 	jsonText := "{\"text\":\"Hello\"}"
+// 	jsonHeader := map[string]string{"Content-Type": "application/json"}
+// 	var data []Request
+// 	data = append(data, Request{
+// 		Method: "POST",
+// 		Url:    jsonUrl,
+// 		Json:   jsonData,
+// 	})
 
-	data = append(data, Request{
-		Method: "DELETE",
-		Url:    jsonUrl,
-		Json:   jsonData,
-	})
-	data = append(data, Request{
-		Method: "PUT",
-		Url:    jsonUrl,
-		Json:   jsonData,
-	})
-	data = append(data, Request{
-		Method: "PATCH",
-		Url:    jsonUrl,
-		Json:   jsonData,
-	})
+// 	data = append(data, Request{
+// 		Method: "DELETE",
+// 		Url:    jsonUrl,
+// 		Json:   jsonData,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PUT",
+// 		Url:    jsonUrl,
+// 		Json:   jsonData,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PATCH",
+// 		Url:    jsonUrl,
+// 		Json:   jsonData,
+// 	})
 
-	data = append(data, Request{
-		Method:   "POST",
-		Header:   jsonHeader,
-		Url:      jsonUrl,
-		JsonText: jsonText,
-	})
+// 	data = append(data, Request{
+// 		Method:   "POST",
+// 		Header:   jsonHeader,
+// 		Url:      jsonUrl,
+// 		JsonText: jsonText,
+// 	})
 
-	data = append(data, Request{
-		Method:   "DELETE",
-		Header:   jsonHeader,
-		Url:      jsonUrl,
-		JsonText: jsonText,
-	})
-	data = append(data, Request{
-		Method:   "PUT",
-		Header:   jsonHeader,
-		Url:      jsonUrl,
-		JsonText: jsonText,
-	})
-	data = append(data, Request{
-		Method:   "PATCH",
-		Header:   jsonHeader,
-		Url:      jsonUrl,
-		JsonText: jsonText,
-	})
+// 	data = append(data, Request{
+// 		Method:   "DELETE",
+// 		Header:   jsonHeader,
+// 		Url:      jsonUrl,
+// 		JsonText: jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "PUT",
+// 		Header:   jsonHeader,
+// 		Url:      jsonUrl,
+// 		JsonText: jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "PATCH",
+// 		Header:   jsonHeader,
+// 		Url:      jsonUrl,
+// 		JsonText: jsonText,
+// 	})
 
-	for _, request := range data {
-		response, err := r.AnyJson(request)
-		if err != nil {
-			panic(err)
-		}
-		if response.StatusCode != 200 {
-			panic("状态码不是200")
-		}
-	}
-}
+// 	for _, request := range data {
+// 		response, err := r.AnyJson(request)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		if response.StatusCode != 200 {
+// 			panic("状态码不是200")
+// 		}
+// 	}
+// }
 
-func TestRequests_AnyForm(t *testing.T) {
-	formData := map[string]string{"a": "1", "b": "2.2", "c": "33", "d": "true"}
-	formText := "a=b&b=1&b=2.22"
-	var data []Request
-	data = append(data, Request{
-		Method: "GET",
-		Url:    formUrl,
-		Form:   formData,
-	})
+// func TestRequests_AnyForm(t *testing.T) {
+// 	formData := map[string]string{"a": "1", "b": "2.2", "c": "33", "d": "true"}
+// 	formText := "a=b&b=1&b=2.22"
+// 	var data []Request
+// 	data = append(data, Request{
+// 		Method: "GET",
+// 		Url:    formUrl,
+// 		Form:   formData,
+// 	})
 
-	data = append(data, Request{
-		Method: "POST",
-		Url:    formUrl,
-		Form:   formData,
-	})
+// 	data = append(data, Request{
+// 		Method: "POST",
+// 		Url:    formUrl,
+// 		Form:   formData,
+// 	})
 
-	data = append(data, Request{
-		Method: "DELETE",
-		Url:    formUrl,
-		Form:   formData,
-	})
-	data = append(data, Request{
-		Method: "PUT",
-		Url:    formUrl,
-		Form:   formData,
-	})
-	data = append(data, Request{
-		Method: "PATCH",
-		Url:    formUrl,
-		Form:   formData,
-	})
-	data = append(data, Request{
-		Method:   "GET",
-		Url:      formUrl,
-		FormText: formText,
-	})
-	data = append(data, Request{
-		Method:   "POST",
-		Url:      formUrl,
-		FormText: formText,
-	})
+// 	data = append(data, Request{
+// 		Method: "DELETE",
+// 		Url:    formUrl,
+// 		Form:   formData,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PUT",
+// 		Url:    formUrl,
+// 		Form:   formData,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PATCH",
+// 		Url:    formUrl,
+// 		Form:   formData,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "GET",
+// 		Url:      formUrl,
+// 		FormText: formText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "POST",
+// 		Url:      formUrl,
+// 		FormText: formText,
+// 	})
 
-	data = append(data, Request{
-		Method:   "DELETE",
-		Url:      formUrl,
-		FormText: formText,
-	})
-	data = append(data, Request{
-		Method:   "PUT",
-		Url:      formUrl,
-		FormText: formText,
-	})
-	data = append(data, Request{
-		Method:   "PATCH",
-		Url:      formUrl,
-		FormText: formText,
-	})
+// 	data = append(data, Request{
+// 		Method:   "DELETE",
+// 		Url:      formUrl,
+// 		FormText: formText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "PUT",
+// 		Url:      formUrl,
+// 		FormText: formText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "PATCH",
+// 		Url:      formUrl,
+// 		FormText: formText,
+// 	})
 
-	for _, request := range data {
-		response, err := r.AnyForm(request)
-		if err != nil {
-			panic(err)
-		}
-		if response.StatusCode != 200 {
-			panic("状态码不是200")
-		}
-	}
-}
+// 	for _, request := range data {
+// 		response, err := r.AnyForm(request)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		if response.StatusCode != 200 {
+// 			panic("状态码不是200")
+// 		}
+// 	}
+// }
 
-func TestRequests_AnyText(t *testing.T) {
-	jsonText := "任意的文本123 abc ABC &……*"
-	jsonHeader := map[string]string{"Content-Type": "application/json"}
-	var data []Request
-	data = append(data, Request{
-		Method: "POST",
-		Url:    urlPath,
-		Text:   jsonText,
-	})
+// func TestRequests_AnyText(t *testing.T) {
+// 	jsonText := "任意的文本123 abc ABC &……*"
+// 	jsonHeader := map[string]string{"Content-Type": "application/json"}
+// 	var data []Request
+// 	data = append(data, Request{
+// 		Method: "POST",
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
 
-	data = append(data, Request{
-		Method: "DELETE",
-		Url:    urlPath,
-		Text:   jsonText,
-	})
-	data = append(data, Request{
-		Method: "PUT",
-		Url:    urlPath,
-		Text:   jsonText,
-	})
-	data = append(data, Request{
-		Method:   "PATCH",
-		Url:      urlPath,
-		JsonText: jsonText,
-	})
+// 	data = append(data, Request{
+// 		Method: "DELETE",
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PUT",
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method:   "PATCH",
+// 		Url:      urlPath,
+// 		JsonText: jsonText,
+// 	})
 
-	data = append(data, Request{
-		Method: "POST",
-		Header: jsonHeader,
-		Url:    urlPath,
-		Text:   jsonText,
-	})
+// 	data = append(data, Request{
+// 		Method: "POST",
+// 		Header: jsonHeader,
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
 
-	data = append(data, Request{
-		Method: "DELETE",
-		Header: jsonHeader,
-		Url:    urlPath,
-		Text:   jsonText,
-	})
-	data = append(data, Request{
-		Method: "PUT",
-		Header: jsonHeader,
-		Url:    urlPath,
-		Text:   jsonText,
-	})
-	data = append(data, Request{
-		Method: "PATCH",
-		Header: jsonHeader,
-		Url:    urlPath,
-		Text:   jsonText,
-	})
+// 	data = append(data, Request{
+// 		Method: "DELETE",
+// 		Header: jsonHeader,
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PUT",
+// 		Header: jsonHeader,
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
+// 	data = append(data, Request{
+// 		Method: "PATCH",
+// 		Header: jsonHeader,
+// 		Url:    urlPath,
+// 		Text:   jsonText,
+// 	})
 
-	for _, request := range data {
-		response, err := r.AnyText(request)
-		if err != nil {
-			panic(err)
-		}
-		if response.StatusCode != 200 {
-			panic("状态码不是200")
-		}
-	}
-}
+// 	for _, request := range data {
+// 		response, err := r.AnyText(request)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		if response.StatusCode != 200 {
+// 			panic("状态码不是200")
+// 		}
+// 	}
+// }

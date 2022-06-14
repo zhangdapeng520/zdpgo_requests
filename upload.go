@@ -67,6 +67,16 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 		Body: bodyBuffer,
 	})
 
+	// 设置请求体内容
+	req.ContentLength = int64(bodyBuffer.Len())
+	buf := bodyBuffer.Bytes()
+	req.GetBody = func() (io.ReadCloser, error) {
+		r := bytes.NewReader(buf)
+		return io.NopCloser(r), nil
+	}
+	bodyReader := ioutil.NopCloser(bodyBuffer)
+	req.Body = bodyReader
+
 	// 执行请求
 	resp, err := client.Do(req)
 	if err != nil {

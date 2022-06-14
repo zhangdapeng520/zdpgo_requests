@@ -2,6 +2,7 @@ package zdpgo_requests
 
 import (
 	"encoding/base64"
+
 	"github.com/zhangdapeng520/zdpgo_password"
 )
 
@@ -41,11 +42,7 @@ func (r *Requests) PostEcc(targetUrl, jsonStr string) (*Response, error) {
 	}
 
 	// 发送请求
-	response, err := r.AnyText(Request{
-		Method: "POST",
-		Url:    targetUrl,
-		Text:   base64.StdEncoding.EncodeToString(encryptData),
-	})
+	response, err := r.Any("POST", targetUrl, r.GetText(base64.StdEncoding.EncodeToString(encryptData)))
 	if err != nil {
 		r.Log.Error("发送JSON请求失败", "error", err)
 		return nil, err
@@ -64,11 +61,7 @@ func (r *Requests) PostAes(targetUrl, jsonStr string) (*Response, error) {
 	}
 
 	// 发送请求
-	response, err := r.AnyText(Request{
-		Method: "POST",
-		Url:    targetUrl,
-		Text:   string(encryptData),
-	})
+	response, err := r.Any("POST", targetUrl, string(encryptData))
 	if err != nil {
 		r.Log.Error("发送JSON请求失败", "error", err)
 		return nil, err
@@ -109,11 +102,7 @@ func (r *Requests) PostEccText(targetUrl, data string) (*Response, error) {
 	}
 
 	// 发送请求
-	response, err := r.AnyText(Request{
-		Method: "POST",
-		Url:    targetUrl,
-		Text:   string(encryptData),
-	})
+	response, err := r.Any("POST", targetUrl, string(encryptData))
 	if err != nil {
 		r.Log.Error("发送POST请求失败", "error", err)
 		return nil, err
