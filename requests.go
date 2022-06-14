@@ -2,6 +2,7 @@ package zdpgo_requests
 
 import (
 	"crypto/tls"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -11,6 +12,10 @@ import (
 	"github.com/zhangdapeng520/zdpgo_password"
 	"github.com/zhangdapeng520/zdpgo_random"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 type Requests struct {
 	ClientPort int                      // 源端口
@@ -38,7 +43,10 @@ func NewWithConfig(config *Config) *Requests {
 
 	// 配置
 	if config.ContentType == "" {
-		config.ContentType = "multipart/form-data"
+		config.ContentType = "application/json"
+	}
+	if config.Author == "" {
+		config.Author = "https://github.com/zhangdapeng520"
 	}
 	if config.UserAgent == "" {
 		config.UserAgent = "ZDP-Go-Requests"
@@ -74,4 +82,13 @@ func (r *Requests) RemoveProxy(client *http.Client) {
 	}
 	client.Timeout = time.Second * time.Duration(r.Config.Timeout) // 超时时间
 	r.Config.ProxyUrl = ""
+}
+
+// GetRandomUserAgent 获取随机的用户代理
+func (r *Requests) GetRandomUserAgent() string {
+	var (
+		length = len(CAgents)
+		index  = rand.Intn(length)
+	)
+	return CAgents[index]
 }
