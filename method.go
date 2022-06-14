@@ -51,37 +51,24 @@ func (r *Requests) parseArgs(request *Request, args ...interface{}) {
 	}
 }
 
-// Any 任意方法的请求
-func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response, error) {
-	request := &Request{
-		Method: strings.ToUpper(method),
-		Url:    targetUrl,
-	}
-	defer func() {
-		// 捕获异常
-		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
-		}
-	}()
-
-	// 处理参数
-	r.parseArgs(request, args...)
-
-	// 响应对象
-	response := &Response{}
-
-	// http请求对象
-	if request.Method == "" {
-		request.Method = "GET"
-	}
+// setHeader 设置请求头
+func (r *Requests) setHeader(request *Request) {
 	if request.Header == nil {
-		request.Header = map[string]string{
-			"User-Agent": r.Config.UserAgent,
+		if r.Config.IsRandomUserAgent {
+			request.Header = map[string]string{
+				"User-Agent": r.GetRandomUserAgent(),
+			}
+		} else {
+			request.Header = map[string]string{
+				"User-Agent": r.Config.UserAgent,
+			}
 		}
 		if request.IsText {
 			request.Header["Content-Type"] = "text/plain"
 		} else if request.IsForm {
 			request.Header["Content-Type"] = "application/x-www-form-urlencoded"
+		} else if request.IsJson {
+			request.Header["Content-Type"] = "application/json"
 		} else {
 			request.Header["Content-Type"] = r.Config.ContentType
 		}
@@ -98,10 +85,43 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 				request.Header["Content-Type"] = "text/plain"
 			} else if request.IsForm {
 				request.Header["Content-Type"] = "application/x-www-form-urlencoded"
+			} else if request.IsJson {
+				request.Header["Content-Type"] = "application/json"
 			} else {
 				request.Header["Content-Type"] = r.Config.ContentType
 			}
 		}
+	}
+
+	// 自定义请求头
+	request.Header["X-Author"] = r.Config.Author
+}
+
+// Any 任意方法的请求
+func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response, error) {
+	request := &Request{
+		Method: strings.ToUpper(method),
+		Url:    targetUrl,
+	}
+	defer func() {
+		// 捕获异常
+		if err := recover(); err != nil {
+			r.Log.Error("处理请求失败", "error", err)
+		}
+	}()
+
+	// 处理参数
+	r.parseArgs(request, args...)
+
+	// 设置请求头
+	r.setHeader(request)
+
+	// 响应对象
+	response := &Response{}
+
+	// http请求对象
+	if request.Method == "" {
+		request.Method = "GET"
 	}
 	req := r.GetHttpRequest(*request)
 
@@ -156,10 +176,26 @@ func (r *Requests) AnyCompareStatusCode(method, target1Url, target2Url string, a
 }
 
 // Get 发送GET请求
-func (r *Requests) Get(targetUrl string) (*Response, error) {
-	return r.Any("GET", targetUrl)
+func (r *Requests) Get(targetUrl string, args ...interface{}) (*Response, error) {
+	return r.Any("GET", targetUrl, args...)
 }
 
-func (r *Requests) Post(targetUrl string) (*Response, error) {
-	return r.Any("POST", targetUrl)
+// Post 发送POST请求
+func (r *Requests) Post(targetUrl string, args ...interface{}) (*Response, error) {
+	return r.Any("POST", targetUrl, args...)
+}
+
+// Put 发送PUT请求
+func (r *Requests) Put(targetUrl string, args ...interface{}) (*Response, error) {
+	return r.Any("PUT", targetUrl, args...)
+}
+
+// Patch 发送PATCH请求
+func (r *Requests) Patch(targetUrl string, args ...interface{}) (*Response, error) {
+	return r.Any("PATCH", targetUrl, args...)
+}
+
+// Delete 发送DELETE请求
+func (r *Requests) Delete(targetUrl string, args ...interface{}) (*Response, error) {
+	return r.Any("DELETE", targetUrl, args...)
 }

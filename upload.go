@@ -57,15 +57,16 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 
 	// 构建请求对象
 	client := r.GetHttpClient()
-	req := r.GetHttpRequest(Request{
+	request := &Request{
 		Method: "POST",
 		Url:    urlPath,
 		Header: map[string]string{
 			"Content-Type": contentType,
-			"User-Agent":   r.Config.UserAgent,
 		},
 		Body: bodyBuffer,
-	})
+	}
+	r.setHeader(request)
+	req := r.GetHttpRequest(*request)
 
 	// 设置请求体内容
 	req.ContentLength = int64(bodyBuffer.Len())
