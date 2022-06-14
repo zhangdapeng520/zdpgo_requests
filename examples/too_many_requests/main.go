@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/zhangdapeng520/zdpgo_requests"
 )
@@ -13,9 +12,15 @@ func main() {
 	})
 	target := "http://127.0.0.1:3333/aes"
 	jsonStr := "{\"age\":22,\"username\":\"zhangdapeng\"}"
-	response, err := requests.PostAes(target, jsonStr)
-	if err != nil {
-		panic(err)
+
+	// 发送1w条请求
+	i := 0
+	for i < 100000 {
+		response, err := requests.PostAes(target, jsonStr)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(response.ToJsonStr())
+		i++
 	}
-	fmt.Println(response.Text, reflect.TypeOf(response.Text))
 }

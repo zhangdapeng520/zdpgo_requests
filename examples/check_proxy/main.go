@@ -11,7 +11,7 @@ type ProxyConfig struct {
 }
 
 func main() {
-	r := zdpgo_requests.NewWithConfig(zdpgo_requests.Config{
+	r := zdpgo_requests.NewWithConfig(&zdpgo_requests.Config{
 		Debug:   true,
 		Timeout: 5,
 	})

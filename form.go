@@ -2,6 +2,7 @@ package zdpgo_requests
 
 import (
 	"bytes"
+	"encoding/json"
 )
 
 type Header map[string]string       // 请求头类型
@@ -135,4 +136,10 @@ var (
 
 func (r *Requests) GetText(data string) Text {
 	return Text(data)
+}
+
+// ToJsonStr 转换为JSON字符串
+func (r *Response) ToJsonStr() string {
+	data, _ := json.Marshal(r)
+	return string(data)
 }
