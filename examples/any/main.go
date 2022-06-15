@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_log"
 
 	"github.com/zhangdapeng520/zdpgo_requests"
 )
 
 func main() {
-	r := zdpgo_requests.NewWithConfig(&zdpgo_requests.Config{
-		Debug: true,
-	})
+	r := zdpgo_requests.New(zdpgo_log.NewWithDebug(true, "log.log"))
 
 	targetUrl := "http://localhost:3333/ping"
 	jsonUrl := "http://localhost:3333/json"
@@ -82,7 +81,9 @@ func main() {
 		Username: "zhangdapeng520",
 		Password: "zhangdapeng520",
 	}
-	response, err = r.Any("POST", jsonUrl, jsonStuct)
+	header := make(zdpgo_requests.Header)
+	header["X-auth"] = "user"
+	response, err = r.Any("POST", jsonUrl, jsonStuct, header)
 	if err != nil {
 		panic(err)
 	}

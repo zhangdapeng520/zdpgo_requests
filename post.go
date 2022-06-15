@@ -27,7 +27,7 @@ func (r *Requests) PostEcc(targetUrl, jsonStr string) (*Response, error) {
 		ecc = r.Password.GetEcc()
 		privateKey, publicKey, err := ecc.GetKey()
 		if err != nil {
-			r.Log.Error("获取ECC加密私钥和公钥失败", "error", err)
+			Log.Error("获取ECC加密私钥和公钥失败", "error", err)
 			return nil, err
 		}
 		r.Config.Ecc.PrivateKey = privateKey
@@ -37,14 +37,14 @@ func (r *Requests) PostEcc(targetUrl, jsonStr string) (*Response, error) {
 	// 加密数据
 	encryptData, err := ecc.EncryptByPublicKey([]byte(jsonStr), r.Config.Ecc.PublicKey)
 	if err != nil {
-		r.Log.Error("ECC加密数据失败", "error", err)
+		Log.Error("ECC加密数据失败", "error", err)
 		return nil, err
 	}
 
 	// 发送请求
 	response, err := r.Any("POST", targetUrl, r.GetText(base64.StdEncoding.EncodeToString(encryptData)))
 	if err != nil {
-		r.Log.Error("发送JSON请求失败", "error", err)
+		Log.Error("发送JSON请求失败", "error", err)
 		return nil, err
 	}
 
@@ -56,21 +56,21 @@ func (r *Requests) PostAes(targetUrl, jsonStr string) (*Response, error) {
 	// 加密数据
 	encryptData, err := r.Password.Aes.Encrypt([]byte(jsonStr))
 	if err != nil {
-		r.Log.Error("AES加密数据失败", "error", err)
+		Log.Error("AES加密数据失败", "error", err)
 		return nil, err
 	}
 
 	// 发送请求
 	response, err := r.Any("POST", targetUrl, string(encryptData))
 	if err != nil {
-		r.Log.Error("发送JSON请求失败", "error", err)
+		Log.Error("发送JSON请求失败", "error", err)
 		return nil, err
 	}
 
 	// AES解密响应数据
 	decryptBytes, err := r.Password.Aes.Decrypt(response.Content)
 	if err != nil {
-		r.Log.Error("ECC解密响应数据失败", "error", err)
+		Log.Error("ECC解密响应数据失败", "error", err)
 		return nil, err
 	}
 	response.Content = decryptBytes
@@ -87,7 +87,7 @@ func (r *Requests) PostEccText(targetUrl, data string) (*Response, error) {
 		ecc = r.Password.GetEcc()
 		privateKey, publicKey, err := ecc.GetKey()
 		if err != nil {
-			r.Log.Error("获取ECC加密私钥和公钥失败", "error", err)
+			Log.Error("获取ECC加密私钥和公钥失败", "error", err)
 			return nil, err
 		}
 		r.Config.Ecc.PrivateKey = privateKey
@@ -97,21 +97,21 @@ func (r *Requests) PostEccText(targetUrl, data string) (*Response, error) {
 	// 加密数据
 	encryptData, err := ecc.EncryptByPublicKey([]byte(data), r.Config.Ecc.PublicKey)
 	if err != nil {
-		r.Log.Error("ECC加密数据失败", "error", err)
+		Log.Error("ECC加密数据失败", "error", err)
 		return nil, err
 	}
 
 	// 发送请求
 	response, err := r.Any("POST", targetUrl, string(encryptData))
 	if err != nil {
-		r.Log.Error("发送POST请求失败", "error", err)
+		Log.Error("发送POST请求失败", "error", err)
 		return nil, err
 	}
 
 	// ecc解密响应数据
 	decryptBytest, err := ecc.Decrypt([]byte(response.Text))
 	if err != nil {
-		r.Log.Error("ECC解密响应数据失败", "error", err)
+		Log.Error("ECC解密响应数据失败", "error", err)
 		return nil, err
 	}
 	response.Content = decryptBytest

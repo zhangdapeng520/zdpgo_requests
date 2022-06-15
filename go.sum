@@ -5,8 +5,8 @@ github.com/zhangdapeng520/zdpgo_json v0.1.2/go.mod h1:ArbXlMRMsWO+3bIobPaYK/P86y
 github.com/zhangdapeng520/zdpgo_log v1.3.3/go.mod h1:Qnr8tZCpmDWqRfJpw0r5ClUNqdOJwLNXIyXA2IGXv6k=
 github.com/zhangdapeng520/zdpgo_log v1.3.4 h1:hHB+ELh0zaBe5NLyASTDZ1qFnpkiFcOM582Phen1B7w=
 github.com/zhangdapeng520/zdpgo_log v1.3.4/go.mod h1:Qnr8tZCpmDWqRfJpw0r5ClUNqdOJwLNXIyXA2IGXv6k=
-github.com/zhangdapeng520/zdpgo_password v1.2.3 h1:T1KyWhTJ8eAPx1zPq1r1mzq/BB4noPKEALGB1WfcARE=
-github.com/zhangdapeng520/zdpgo_password v1.2.3/go.mod h1:WDB63eYpqFkh83dHUK5uOEkc6GvZWxvXo0UASHuhYnY=
+github.com/zhangdapeng520/zdpgo_password v1.2.5 h1:4LY//evYBGOcrBQ+KUJCJTOYd6WKG/aBtBFZwAG/Rxs=
+github.com/zhangdapeng520/zdpgo_password v1.2.5/go.mod h1:WDB63eYpqFkh83dHUK5uOEkc6GvZWxvXo0UASHuhYnY=
 github.com/zhangdapeng520/zdpgo_random v1.1.5 h1:o5CKy54t6oAlt612p6QK+R8oeIOwacDnAa+5BmT0CUQ=
 github.com/zhangdapeng520/zdpgo_random v1.1.5/go.mod h1:tSy7XqzYOw0h3O/FRLmfYUft/CMYd8JUpRH4yh/5Glw=
 golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=

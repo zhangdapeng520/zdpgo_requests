@@ -9,8 +9,6 @@ package zdpgo_requests
 */
 
 type Config struct {
-	Debug                  bool      `yaml:"debug" json:"debug"`                   // 是否为DEBUG模式
-	LogFilePath            string    `yaml:"log_file_path" json:"log_file_path"`   // 日志存放路径
 	Timeout                int       `json:"timeout" yaml:"timeout"`               // 请求超时时间（秒）
 	ContentType            string    `yaml:"content_type" json:"content_type"`     // 内容类型，默认"application/json"
 	UserAgent              string    `yaml:"user_agent" json:"user_agent"`         // 用户代理，默认"ZDP-Go-Requests"

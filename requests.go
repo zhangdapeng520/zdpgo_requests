@@ -17,36 +17,33 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
+var (
+	Log *zdpgo_log.Log
+)
+
 type Requests struct {
 	ClientPort int                      // 源端口
 	Config     *Config                  // 配置对象
-	Log        *zdpgo_log.Log           // 日志对象
 	File       *zdpgo_file.File         // 文件对象
 	Json       *zdpgo_json.Json         // json处理对象
 	Random     *zdpgo_random.Random     // 随机数据生成
 	Password   *zdpgo_password.Password // 加密对象
 }
 
-func New() *Requests {
-	return NewWithConfig(&Config{})
+func New(log *zdpgo_log.Log) *Requests {
+	return NewWithConfig(&Config{}, log)
 }
 
 // NewWithConfig 通过配置创建Requests请求对象
-func NewWithConfig(config *Config) *Requests {
+func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 	r := Requests{}
 
 	// 创建日志
-	if config.LogFilePath == "" {
-		config.LogFilePath = "logs/zdpgo/zdpgo_requests.log"
-	}
-	r.Log = zdpgo_log.NewWithDebug(config.Debug, config.LogFilePath)
+	r.SetLog(log)
 
 	// 配置
 	if config.ContentType == "" {
 		config.ContentType = "application/json"
-	}
-	if config.Author == "" {
-		config.Author = "https://github.com/zhangdapeng520"
 	}
 	if config.UserAgent == "" {
 		config.UserAgent = "ZDP-Go-Requests"
@@ -59,18 +56,26 @@ func NewWithConfig(config *Config) *Requests {
 	}
 	r.Config = config // 配置对象
 
-	r.Json = zdpgo_json.New()                                                 // 实例化json对象
-	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
-	r.Random = zdpgo_random.New()                                             // 随机数据对象
+	r.Json = zdpgo_json.New()     // 实例化json对象
+	r.File = zdpgo_file.New()     // 实例化文件对象
+	r.Random = zdpgo_random.New() // 随机数据对象
 	r.Password = zdpgo_password.NewWithConfig(&zdpgo_password.Config{
-		Debug:       config.Debug,
-		LogFilePath: config.LogFilePath,
 		EccKey: zdpgo_password.Key{
 			PrivateKey: config.Ecc.PrivateKey,
 			PublicKey:  config.Ecc.PublicKey,
 		},
-	})
+	}, Log)
 	return &r
+}
+
+// SetLog 设置日志对象
+func SetLog(log *zdpgo_log.Log) {
+	Log = log
+}
+
+// SetLog 设置日志对象
+func (r *Requests) SetLog(log *zdpgo_log.Log) {
+	SetLog(log)
 }
 
 // RemoveProxy 移除代理

@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_log"
 
 	"github.com/zhangdapeng520/zdpgo_requests"
 )
 
 func main() {
-	r := zdpgo_requests.NewWithConfig(&zdpgo_requests.Config{
-		Debug: true,
-	})
+	r := zdpgo_requests.New(zdpgo_log.NewWithDebug(true, "log.log"))
 
 	uploadUrl := "http://localhost:3333/upload"
 
