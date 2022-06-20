@@ -43,7 +43,7 @@ func (r *Requests) parseArgs(request *Request, args ...interface{}) {
 			request.IsJson = true
 			jsonBytes, err := json.Marshal(argValue)
 			if err != nil {
-				Log.Error("解析JSON数据失败", "error", err)
+				r.Log.Error("解析JSON数据失败", "error", err)
 			} else {
 				request.JsonText = string(jsonBytes)
 			}
@@ -108,7 +108,7 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	defer func() {
 		// 捕获异常
 		if err := recover(); err != nil {
-			Log.Error("处理请求失败", "error", err)
+			r.Log.Error("处理请求失败", "error", err)
 		}
 	}()
 
@@ -145,7 +145,7 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	// 执行请求
 	httpResponse, err := client.Do(req)
 	if err != nil {
-		Log.Error("发送请求失败", "error", err)
+		r.Log.Error("发送请求失败", "error", err)
 		return response, err
 	}
 
@@ -161,14 +161,14 @@ func (r *Requests) AnyCompareStatusCode(method, target1Url, target2Url string, a
 	// 发送第一次请求
 	response1, err := r.Any(method, target1Url)
 	if err != nil {
-		Log.Error("发送第一次请求失败", "error", err)
+		r.Log.Error("发送第一次请求失败", "error", err)
 		return response1, err
 	}
 
 	// 发送第二次请求
 	response2, err := r.Any(method, target2Url, args...)
 	if err != nil {
-		Log.Error("发送第二次请求失败", "error", err)
+		r.Log.Error("发送第二次请求失败", "error", err)
 		return response2, err
 	}
 

@@ -17,10 +17,6 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-var (
-	Log *zdpgo_log.Log
-)
-
 type Requests struct {
 	ClientPort int                      // 源端口
 	Config     *Config                  // 配置对象
@@ -28,6 +24,7 @@ type Requests struct {
 	Json       *zdpgo_json.Json         // json处理对象
 	Random     *zdpgo_random.Random     // 随机数据生成
 	Password   *zdpgo_password.Password // 加密对象
+	Log        *zdpgo_log.Log
 }
 
 func New(log *zdpgo_log.Log) *Requests {
@@ -37,9 +34,6 @@ func New(log *zdpgo_log.Log) *Requests {
 // NewWithConfig 通过配置创建Requests请求对象
 func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 	r := Requests{}
-
-	// 创建日志
-	r.SetLog(log)
 
 	// 配置
 	if config.ContentType == "" {
@@ -55,27 +49,17 @@ func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 		config.TmpDir = ".zdpgo_requests_tmp_files"
 	}
 	r.Config = config // 配置对象
-
-	r.Json = zdpgo_json.New()     // 实例化json对象
-	r.File = zdpgo_file.New()     // 实例化文件对象
-	r.Random = zdpgo_random.New() // 随机数据对象
+	r.Log = log
+	r.Json = zdpgo_json.New()        // 实例化json对象
+	r.File = zdpgo_file.New()        // 实例化文件对象
+	r.Random = zdpgo_random.New(log) // 随机数据对象
 	r.Password = zdpgo_password.NewWithConfig(&zdpgo_password.Config{
 		EccKey: zdpgo_password.Key{
 			PrivateKey: config.Ecc.PrivateKey,
 			PublicKey:  config.Ecc.PublicKey,
 		},
-	}, Log)
+	}, r.Log)
 	return &r
-}
-
-// SetLog 设置日志对象
-func SetLog(log *zdpgo_log.Log) {
-	Log = log
-}
-
-// SetLog 设置日志对象
-func (r *Requests) SetLog(log *zdpgo_log.Log) {
-	SetLog(log)
 }
 
 // RemoveProxy 移除代理

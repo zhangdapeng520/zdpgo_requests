@@ -23,7 +23,7 @@ func (r *Requests) SetProxy(client *http.Client, proxyUrl string) error {
 	// 解析代理地址
 	uri, err := url.Parse(proxyUrl)
 	if err != nil {
-		Log.Error("解析代理地址失败", "error", err, "proxyUrl", proxyUrl)
+		r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", proxyUrl)
 	}
 
 	// 设置代理
@@ -48,7 +48,7 @@ func (r *Requests) SetTimeout(client *http.Client, timeout int) {
 // SetResponse 设置响应结果
 func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	if response == nil {
-		Log.Error("HTTP响应对象不能为空")
+		r.Log.Error("HTTP响应对象不能为空")
 		return
 	}
 
@@ -56,7 +56,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 		resp = &Response{}
 	}
 	if response == nil {
-		Log.Warning("HTTP响应为空，无法处理", "response", response)
+		r.Log.Warning("HTTP响应为空，无法处理", "response", response)
 		return
 	}
 	resp.StatusCode = response.StatusCode          // 响应状态码
@@ -71,7 +71,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	if r.Config.IsRecordRequestDetail && response.Request != nil {
 		requestDump, err := httputil.DumpRequest(response.Request, true)
 		if err != nil {
-			Log.Error("获取请求详情失败", "error", err)
+			r.Log.Error("获取请求详情失败", "error", err)
 			return
 		}
 		resp.RawReqDetail = string(requestDump)
@@ -81,7 +81,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	if r.Config.IsRecordResponseDetail && response != nil {
 		responseDump, err := httputil.DumpResponse(response, true)
 		if err != nil {
-			Log.Error("获取响应详情失败", "error", err)
+			r.Log.Error("获取响应详情失败", "error", err)
 			return
 		}
 		resp.RawRespDetail = string(responseDump)
@@ -98,7 +98,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	if response.Header.Get("Content-Encoding") == "gzip" && response.Header.Get("Accept-Encoding") != "" {
 		reader, err := gzip.NewReader(Body)
 		if err != nil {
-			Log.Error("解压响应体内容失败", "error", err)
+			r.Log.Error("解压响应体内容失败", "error", err)
 			return
 		}
 		Body = reader
@@ -107,7 +107,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	// 读取响应体内容
 	content, err := ioutil.ReadAll(Body)
 	if err != nil {
-		Log.Error("读取响应体内容失败", "error", err)
+		r.Log.Error("读取响应体内容失败", "error", err)
 		return
 	}
 

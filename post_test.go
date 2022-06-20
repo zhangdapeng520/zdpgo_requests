@@ -1,6 +1,9 @@
 package zdpgo_requests
 
-import "testing"
+import (
+	"github.com/zhangdapeng520/zdpgo_log"
+	"testing"
+)
 
 /*
 @Time : 2022/6/6 15:07
@@ -23,12 +26,11 @@ c9ybrYOo7t6bs818HMybbahMQylb+qB4aTtHV0JPqZAr8MChRmvze7nNFw==
 -----END  ZDPGO_PASSWORD ECC PUBLIC KEY -----
 `
 	requests := NewWithConfig(&Config{
-		Debug: true,
 		Ecc: EccConfig{
 			PrivateKey: []byte(privateKey),
 			PublicKey:  []byte(publicKey),
 		},
-	})
+	}, zdpgo_log.Tmp)
 	target := "http://127.0.0.1:3333/ecc"
 	jsonStr := "{\"age\":22,\"username\":\"zhangdapeng\"}"
 	_, err := requests.PostEcc(target, jsonStr)
@@ -50,12 +52,11 @@ c9ybrYOo7t6bs818HMybbahMQylb+qB4aTtHV0JPqZAr8MChRmvze7nNFw==
 -----END  ZDPGO_PASSWORD ECC PUBLIC KEY -----
 `
 	requests := NewWithConfig(&Config{
-		Debug: true,
 		Ecc: EccConfig{
 			PrivateKey: []byte(privateKey),
 			PublicKey:  []byte(publicKey),
 		},
-	})
+	}, zdpgo_log.Tmp)
 	target := "http://127.0.0.1:3333/ecctext"
 	jsonStr := "{\"age\":22,\"username\":\"zhangdapeng\"}"
 	_, err := requests.PostEccText(target, jsonStr)
