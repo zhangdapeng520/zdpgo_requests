@@ -20,12 +20,12 @@ import (
 func (r *Requests) Upload(urlPath, formName, filePath string) (*Response, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		r.Log.Error("打开文件失败", "error", err)
+		Log.Error("打开文件失败", "error", err)
 		return nil, err
 	}
 	response, err := r.UploadByBytes(urlPath, formName, filePath, fileContent)
 	if err != nil {
-		r.Log.Error("上传文件失败", "error", err, "urlPath", urlPath, "filePath", filePath)
+		Log.Error("上传文件失败", "error", err, "urlPath", urlPath, "filePath", filePath)
 		return nil, err
 	}
 	return response, nil
@@ -44,7 +44,7 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 	// 创建文件
 	fileWriter, err := bodyWriter.CreateFormFile(formName, fileName)
 	if err != nil {
-		r.Log.Error("创建表单失败", "error", err)
+		Log.Error("创建表单失败", "error", err)
 		return nil, err
 	}
 
@@ -57,20 +57,31 @@ func (r *Requests) UploadByBytes(urlPath, formName, fileName string, fileContent
 
 	// 构建请求对象
 	client := r.GetHttpClient()
-	req := r.GetHttpRequest(Request{
+	request := &Request{
 		Method: "POST",
 		Url:    urlPath,
 		Header: map[string]string{
 			"Content-Type": contentType,
-			"User-Agent":   r.Config.UserAgent,
 		},
 		Body: bodyBuffer,
-	})
+	}
+	r.setHeader(request)
+	req := r.GetHttpRequest(*request)
+
+	// 设置请求体内容
+	req.ContentLength = int64(bodyBuffer.Len())
+	buf := bodyBuffer.Bytes()
+	req.GetBody = func() (io.ReadCloser, error) {
+		r := bytes.NewReader(buf)
+		return io.NopCloser(r), nil
+	}
+	bodyReader := ioutil.NopCloser(bodyBuffer)
+	req.Body = bodyReader
 
 	// 执行请求
 	resp, err := client.Do(req)
 	if err != nil {
-		r.Log.Error("上传文件失败", "error", err)
+		Log.Error("上传文件失败", "error", err)
 		return nil, err
 	}
 

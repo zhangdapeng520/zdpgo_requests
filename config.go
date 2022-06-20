@@ -10,8 +10,9 @@ package zdpgo_requests
 
 type Config struct {
 	Timeout                int       `json:"timeout" yaml:"timeout"`               // 请求超时时间（秒）
-	ContentType            string    `yaml:"content_type" json:"content_type"`     // 内容类型，默认"multipart/form-data"
+	ContentType            string    `yaml:"content_type" json:"content_type"`     // 内容类型，默认"application/json"
 	UserAgent              string    `yaml:"user_agent" json:"user_agent"`         // 用户代理，默认"ZDP-Go-Requests"
+	Author                 string    `yaml:"author" json:"author"`                 // 作者，自定义请求头
 	TmpDir                 string    `yaml:"tmp_dir" json:"tmp_dir"`               // 文件上传临时目录
 	IsCheckHttps           bool      `json:"is_check_https" yaml:"is_check_https"` // 是否检查HTTPS
 	IsCheckRedirect        bool      `yaml:"is_check_redirect" json:"is_check_redirect"`
@@ -19,7 +20,8 @@ type Config struct {
 	IsRecordRequestDetail  bool      `yaml:"is_record_request_detail" json:"is_record_request_detail"`
 	IsRecordResponseDetail bool      `yaml:"is_record_response_detail" json:"is_record_response_detail"`
 	IsKeepSession          bool      `yaml:"is_keep_session" json:"is_keep_session"`
-	ProxyUrl               string    `yaml:"proxy_url" json:"proxy_url"`
+	IsRandomUserAgent      bool      `yaml:"is_random_user_agent" json:"is_random_user_agent"` // 随机的用户代理
+	ProxyUrl               string    `yaml:"is_json" json:"is_json"`
 	Ecc                    EccConfig `yaml:"ecc" json:"ecc"`
 }
 

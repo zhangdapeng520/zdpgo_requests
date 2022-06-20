@@ -1,10 +1,10 @@
 package zdpgo_requests
 
 import (
-	"bytes"
 	"crypto/tls"
-	"fmt"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -41,43 +41,64 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 	req.Close = true // 解决EOF的bug
 
 	// 请求地址
-	if request.Url != "" {
-		// 查询参数
-		urlPath := request.Url
-		if request.Query != nil {
-			var params []string
-			for k, v := range request.Query {
-				params = append(params, fmt.Sprintf("%s=%s", k, v))
-			}
-			queryStr := strings.Join(params, "&")
-			if strings.Contains(urlPath, "?") && strings.Contains(urlPath, "=") {
-				urlPath += "&" + queryStr
-			} else if strings.Contains(urlPath, "?") {
-				urlPath += queryStr
-			} else {
-				urlPath += "?" + queryStr
-			}
-		}
-
-		// 请求地址
-		urlPared, err := url.Parse(urlPath)
-		if err != nil {
-			r.Log.Error("解析URL失败", "err", err, "url", urlPath)
-			return req
-		}
-		req.URL = urlPared
+	urlPared, err := url.Parse(request.Url)
+	if err != nil {
+		Log.Error("解析URL失败", "err", err, "url", request.Url)
+		return req
 	}
+	req.URL = urlPared
 
 	// 请求体
-	if request.Body != nil {
-		req.ContentLength = int64(request.Body.Len())
-		buf := request.Body.Bytes()
-		req.GetBody = func() (io.ReadCloser, error) {
-			reader := bytes.NewReader(buf)
-			return io.NopCloser(reader), nil
+	if request.Body == nil {
+		// 处理表单数据
+		if request.IsForm {
+			if request.Form != nil {
+				data := make(url.Values)
+				for key, value := range request.Form {
+					data[key] = []string{value}
+				}
+				bodyReader := strings.NewReader(data.Encode())
+				req.ContentLength = int64(bodyReader.Len())
+				req.GetBody = func() (io.ReadCloser, error) {
+					return io.NopCloser(bodyReader), nil
+				}
+				req.Body = io.NopCloser(bodyReader)
+			} else if request.FormText != "" {
+				bodyReader := strings.NewReader(request.FormText)
+				req.ContentLength = int64(bodyReader.Len())
+				req.GetBody = func() (io.ReadCloser, error) {
+					return io.NopCloser(bodyReader), nil
+				}
+				req.Body = io.NopCloser(bodyReader)
+			} else {
+				Log.Error("FORM表单数据不能为空")
+				return req
+			}
+		} else if request.IsJson {
+			if request.Json != nil && len(request.Json) > 0 {
+				dataByte, err := json.Marshal(request.Json)
+				if err != nil {
+					Log.Error("解析JSON数据失败", "error", err, "data", request.Json)
+					return req
+				}
+				strReader := strings.NewReader(string(dataByte))
+				req.ContentLength = int64(strReader.Len())
+				bodyReader := ioutil.NopCloser(strReader)
+				req.Body = bodyReader
+			} else if request.JsonText != "" {
+				strReader := strings.NewReader(request.JsonText)
+				bodyReader := ioutil.NopCloser(strReader)
+				req.ContentLength = int64(strReader.Len())
+				req.Body = bodyReader
+			} else {
+				Log.Error("JSON数据不能为空")
+				return req
+			}
+		} else {
+			bodyReader := ioutil.NopCloser(strings.NewReader(request.Text))
+			req.Body = bodyReader
+			req.ContentLength = int64(len(request.Text))
 		}
-		readCloser := io.NopCloser(request.Body)
-		req.Body = readCloser
 	}
 
 	// 设置基础权限
@@ -112,7 +133,7 @@ func (r *Requests) GetHttpClient() *http.Client {
 	if r.Config.ProxyUrl != "" {
 		uri, err := url.Parse(r.Config.ProxyUrl) // 解析代理地址
 		if err != nil {
-			r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", r.Config.ProxyUrl)
+			Log.Error("解析代理地址失败", "error", err, "proxyUrl", r.Config.ProxyUrl)
 		}
 		tr.Proxy = http.ProxyURL(uri) // 设置代理
 	}
@@ -131,7 +152,7 @@ func (r *Requests) GetHttpClient() *http.Client {
 	// 自动生成cookie
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		r.Log.Error("创建cookie失败", "error", err)
+		Log.Error("创建cookie失败", "error", err)
 	}
 	httpClient.Jar = jar
 
@@ -143,13 +164,13 @@ func (r *Requests) GetHttpClient() *http.Client {
 func (r *Requests) GetHttpPort() int {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
-		r.Log.Error("解析TCP地址失败", "error", err)
+		Log.Error("解析TCP地址失败", "error", err)
 		return 0
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		r.Log.Error("创建tcp监听失败", "error", err)
+		Log.Error("创建tcp监听失败", "error", err)
 		return 0
 	}
 	defer l.Close()
