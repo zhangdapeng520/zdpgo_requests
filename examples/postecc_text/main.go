@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_log"
 	"github.com/zhangdapeng520/zdpgo_requests"
 	"reflect"
 )
@@ -19,12 +20,11 @@ c9ybrYOo7t6bs818HMybbahMQylb+qB4aTtHV0JPqZAr8MChRmvze7nNFw==
 -----END  ZDPGO_PASSWORD ECC PUBLIC KEY -----
 `
 	requests := zdpgo_requests.NewWithConfig(&zdpgo_requests.Config{
-		Debug: true,
 		Ecc: zdpgo_requests.EccConfig{
 			PrivateKey: []byte(privateKey),
 			PublicKey:  []byte(publicKey),
 		},
-	})
+	}, zdpgo_log.Tmp)
 	target := "http://127.0.0.1:3333/ecctext"
 	jsonStr := "{\"age\":22,\"username\":\"zhangdapeng\"}"
 	response, err := requests.PostEccText(target, jsonStr)

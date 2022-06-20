@@ -22,19 +22,16 @@ type Requests struct {
 	Password   *zdpgo_password.Password // 加密对象
 }
 
-func New() *Requests {
-	return NewWithConfig(&Config{})
+func New(log *zdpgo_log.Log) *Requests {
+	return NewWithConfig(&Config{}, log)
 }
 
 // NewWithConfig 通过配置创建Requests请求对象
-func NewWithConfig(config *Config) *Requests {
+func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 	r := Requests{}
 
 	// 创建日志
-	if config.LogFilePath == "" {
-		config.LogFilePath = "logs/zdpgo/zdpgo_requests.log"
-	}
-	r.Log = zdpgo_log.NewWithDebug(config.Debug, config.LogFilePath)
+	r.Log = log
 
 	// 配置
 	if config.ContentType == "" {
@@ -51,12 +48,12 @@ func NewWithConfig(config *Config) *Requests {
 	}
 	r.Config = config // 配置对象
 
-	r.Json = zdpgo_json.New()                                                 // 实例化json对象
-	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: config.Debug}) // 实例化文件对象
-	r.Random = zdpgo_random.New()                                             // 随机数据对象
+	r.Json = zdpgo_json.New()                                                     // 实例化json对象
+	r.File = zdpgo_file.NewWithConfig(zdpgo_file.Config{Debug: log.Config.Debug}) // 实例化文件对象
+	r.Random = zdpgo_random.New(log)                                              // 随机数据对象
 	r.Password = zdpgo_password.NewWithConfig(&zdpgo_password.Config{
-		Debug:       config.Debug,
-		LogFilePath: config.LogFilePath,
+		Debug:       log.Config.Debug,
+		LogFilePath: log.Config.LogFilePath,
 		EccKey: zdpgo_password.Key{
 			PrivateKey: config.Ecc.PrivateKey,
 			PublicKey:  config.Ecc.PublicKey,

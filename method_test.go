@@ -1,6 +1,7 @@
 package zdpgo_requests
 
 import (
+	"github.com/zhangdapeng520/zdpgo_log"
 	"testing"
 )
 
@@ -15,10 +16,9 @@ var (
 
 func getRequests() *Requests {
 	r := NewWithConfig(&Config{
-		Debug:    true,
 		Timeout:  5,
 		ProxyUrl: proxyUrl,
-	})
+	}, zdpgo_log.Tmp)
 	return r
 }
 
@@ -280,9 +280,8 @@ func TestRequests_AnyText(t *testing.T) {
 
 func TestRequests_AnyTextMustResponse(t *testing.T) {
 	r = NewWithConfig(&Config{
-		Debug:   true,
 		Timeout: 5,
-	})
+	}, zdpgo_log.Tmp)
 	urlPath = "http://10.1.2.10/mphLVsmGXesBQxFb/"
 	jsonText := "任意的文本123 abc ABC &……*"
 	jsonHeader := map[string]string{"Content-Type": "application/json"}
