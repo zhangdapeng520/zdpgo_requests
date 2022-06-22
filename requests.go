@@ -25,6 +25,7 @@ type Requests struct {
 	Random     *zdpgo_random.Random     // 随机数据生成
 	Password   *zdpgo_password.Password // 加密对象
 	Log        *zdpgo_log.Log
+	TaskNum    int // 任务数量
 }
 
 func New(log *zdpgo_log.Log) *Requests {
@@ -33,7 +34,7 @@ func New(log *zdpgo_log.Log) *Requests {
 
 // NewWithConfig 通过配置创建Requests请求对象
 func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
-	r := Requests{}
+	r := &Requests{}
 
 	// 配置
 	if config.ContentType == "" {
@@ -48,6 +49,12 @@ func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 	if config.TmpDir == "" {
 		config.TmpDir = ".zdpgo_requests_tmp_files"
 	}
+	if config.PoolSize == 0 {
+		config.PoolSize = 333
+	}
+	if config.LimitSleepSeconds == 0 {
+		config.LimitSleepSeconds = 3
+	}
 	r.Config = config // 配置对象
 	r.Log = log
 	r.Json = zdpgo_json.New()        // 实例化json对象
@@ -59,7 +66,9 @@ func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 			PublicKey:  config.Ecc.PublicKey,
 		},
 	}, r.Log)
-	return &r
+
+	// 返回
+	return r
 }
 
 // RemoveProxy 移除代理

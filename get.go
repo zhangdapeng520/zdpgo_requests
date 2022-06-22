@@ -120,9 +120,12 @@ func (r *Requests) GetHttpClient() *http.Client {
 	netAddr := &net.TCPAddr{Port: port}
 	dialer := &net.Dialer{LocalAddr: netAddr}
 	tr := &http.Transport{
+		DisableKeepAlives:     true, // 用完关闭
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           dialer.DialContext,
-		MaxIdleConns:          100, // 连接池大小
+		MaxConnsPerHost:       r.Config.PoolSize,
+		MaxIdleConnsPerHost:   r.Config.PoolSize / 2,
+		MaxIdleConns:          r.Config.PoolSize * 10, // 连接池大小
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,

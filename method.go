@@ -1,8 +1,11 @@
 package zdpgo_requests
 
 import (
+	"compress/gzip"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"time"
 )
@@ -101,10 +104,6 @@ func (r *Requests) setHeader(request *Request) {
 
 // Any 任意方法的请求
 func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response, error) {
-	request := &Request{
-		Method: strings.ToUpper(method),
-		Url:    targetUrl,
-	}
 	defer func() {
 		// 捕获异常
 		if err := recover(); err != nil {
@@ -112,14 +111,17 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 		}
 	}()
 
+	// 响应对象
+	response := &Response{}
+	request := &Request{
+		Method: strings.ToUpper(method),
+		Url:    targetUrl,
+	}
 	// 处理参数
 	r.parseArgs(request, args...)
 
 	// 设置请求头
 	r.setHeader(request)
-
-	// 响应对象
-	response := &Response{}
 
 	// http请求对象
 	if request.Method == "" {
@@ -142,15 +144,71 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 		}
 	}
 
+	// 简单的请求控制
+	r.TaskNum++
+	if r.TaskNum%r.Config.PoolSize == 0 {
+		time.Sleep(time.Second * time.Duration(r.Config.LimitSleepSeconds))
+		r.TaskNum = 0
+	}
+
 	// 执行请求
 	httpResponse, err := client.Do(req)
 	if err != nil {
 		r.Log.Error("发送请求失败", "error", err)
 		return response, err
 	}
+	defer httpResponse.Body.Close()
+
+	// 获取响应体真实内容
+	var Body = httpResponse.Body
+	if httpResponse.Header.Get("Content-Encoding") == "gzip" && httpResponse.Header.Get("Accept-Encoding") != "" {
+		reader, err := gzip.NewReader(Body)
+		if err != nil {
+			r.Log.Error("解压响应体内容失败", "error", err)
+			return response, nil
+		}
+		Body = reader
+	}
+
+	// 读取响应体内容
+	content, err := ioutil.ReadAll(Body)
+	if err != nil {
+		r.Log.Error("读取响应体内容失败", "error", err)
+		return response, nil
+	}
+
+	// 文本内容
+	response.Content = content
+	response.Text = string(response.Content)
 
 	// 获取响应信息
-	r.SetResponse(response, httpResponse)
+	response.StatusCode = httpResponse.StatusCode              // 响应状态码
+	response.EndTime = int(time.Now().UnixNano())              // 请求结束时间
+	response.SpendTime = response.EndTime - response.StartTime // 请求消耗时间（纳秒）
+	response.SpendTimeSeconds = response.SpendTime / 1000 / 1000 / 1000
+
+	// 源端口
+	response.ClientPort = r.ClientPort
+
+	// 记录请求详情
+	if r.Config.IsRecordRequestDetail && httpResponse.Request != nil {
+		requestDump, err := httputil.DumpRequest(httpResponse.Request, true)
+		if err != nil {
+			r.Log.Error("获取请求详情失败", "error", err)
+			return response, err
+		}
+		response.RawReqDetail = string(requestDump)
+	}
+
+	// 记录响应详情
+	if r.Config.IsRecordResponseDetail && response != nil {
+		responseDump, err := httputil.DumpResponse(httpResponse, true)
+		if err != nil {
+			r.Log.Error("获取响应详情失败", "error", err)
+			return response, nil
+		}
+		response.RawRespDetail = string(responseDump)
+	}
 
 	// 返回响应
 	return response, nil

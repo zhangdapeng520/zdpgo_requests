@@ -114,4 +114,7 @@ func (r *Requests) SetResponse(resp *Response, response *http.Response) {
 	// 文本内容
 	resp.Content = content
 	resp.Text = string(resp.Content)
+
+	// 任务数量减少
+	r.TaskNum--
 }
