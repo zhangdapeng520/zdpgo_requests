@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	requests := zdpgo_requests.New(zdpgo_log.NewWithDebug(true, "log.log"))
+	requests := zdpgo_requests.New(zdpgo_log.Tmp)
 	target := "http://127.0.0.1:3333/aes"
 	jsonStr := "{\"age\":22,\"username\":\"zhangdapeng\"}"
 
@@ -17,7 +17,7 @@ func main() {
 	for i < 100000 {
 		response, err := requests.PostAes(target, jsonStr)
 		if err != nil {
-			panic(err)
+			requests.Log.Error("解密AES数据失败", "error", err)
 		}
 		fmt.Println(response.ToJsonStr())
 		i++

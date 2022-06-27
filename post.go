@@ -70,7 +70,7 @@ func (r *Requests) PostAes(targetUrl, jsonStr string) (*Response, error) {
 	// AES解密响应数据
 	decryptBytes, err := r.Password.Aes.Decrypt(response.Content)
 	if err != nil {
-		r.Log.Error("ECC解密响应数据失败", "error", err)
+		r.Log.Error("AES解密响应数据失败", "error", err, "status", response.StatusCode, "content", response.Text)
 		return nil, err
 	}
 	response.Content = decryptBytes

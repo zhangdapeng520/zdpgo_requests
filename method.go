@@ -192,21 +192,13 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 
 	// 记录请求详情
 	if r.Config.IsRecordRequestDetail && httpResponse.Request != nil {
-		requestDump, err := httputil.DumpRequest(httpResponse.Request, true)
-		if err != nil {
-			r.Log.Error("获取请求详情失败", "error", err)
-			return response, err
-		}
+		requestDump, _ := httputil.DumpRequest(httpResponse.Request, true)
 		response.RawReqDetail = string(requestDump)
 	}
 
 	// 记录响应详情
 	if r.Config.IsRecordResponseDetail && response != nil {
-		responseDump, err := httputil.DumpResponse(httpResponse, true)
-		if err != nil {
-			r.Log.Error("获取响应详情失败", "error", err)
-			return response, nil
-		}
+		responseDump, _ := httputil.DumpResponse(httpResponse, true)
 		response.RawRespDetail = string(responseDump)
 	}
 
