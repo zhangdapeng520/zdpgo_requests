@@ -43,7 +43,6 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 	// 请求地址
 	urlPared, err := url.Parse(request.Url)
 	if err != nil {
-		r.Log.Error("解析URL失败", "err", err, "url", request.Url)
 		return req
 	}
 	req.URL = urlPared
@@ -71,14 +70,12 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 				}
 				req.Body = io.NopCloser(bodyReader)
 			} else {
-				r.Log.Error("FORM表单数据不能为空")
 				return req
 			}
 		} else if request.IsJson {
 			if request.Json != nil && len(request.Json) > 0 {
 				dataByte, err := json.Marshal(request.Json)
 				if err != nil {
-					r.Log.Error("解析JSON数据失败", "error", err, "data", request.Json)
 					return req
 				}
 				strReader := strings.NewReader(string(dataByte))
@@ -91,7 +88,6 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 				req.ContentLength = int64(strReader.Len())
 				req.Body = bodyReader
 			} else {
-				r.Log.Error("JSON数据不能为空")
 				return req
 			}
 		} else {
@@ -113,7 +109,7 @@ func (r *Requests) GetHttpRequest(request Request) *http.Request {
 // GetHttpClient 获取HTTP请求的客户端
 func (r *Requests) GetHttpClient() *http.Client {
 	// 获取端口
-	port := r.GetHttpPort()
+	port, _ := r.GetHttpPort()
 	r.ClientPort = port
 
 	// 绑定本地端口
@@ -134,11 +130,8 @@ func (r *Requests) GetHttpClient() *http.Client {
 
 	// 设置代理
 	if r.Config.ProxyUrl != "" {
-		uri, err := url.Parse(r.Config.ProxyUrl) // 解析代理地址
-		if err != nil {
-			r.Log.Error("解析代理地址失败", "error", err, "proxyUrl", r.Config.ProxyUrl)
-		}
-		tr.Proxy = http.ProxyURL(uri) // 设置代理
+		uri, _ := url.Parse(r.Config.ProxyUrl) // 解析代理地址
+		tr.Proxy = http.ProxyURL(uri)          // 设置代理
 	}
 
 	// 创建客户端
@@ -153,10 +146,7 @@ func (r *Requests) GetHttpClient() *http.Client {
 	}
 
 	// 自动生成cookie
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		r.Log.Error("创建cookie失败", "error", err)
-	}
+	jar, _ := cookiejar.New(nil)
 	httpClient.Jar = jar
 
 	// 返回
@@ -164,21 +154,19 @@ func (r *Requests) GetHttpClient() *http.Client {
 }
 
 // GetHttpPort 获取系统中可用的端口号
-func (r *Requests) GetHttpPort() int {
+func (r *Requests) GetHttpPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
-		r.Log.Error("解析TCP地址失败", "error", err)
-		return 0
+		return 0, err
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		r.Log.Error("创建tcp监听失败", "error", err)
-		return 0
+		return 0, err
 	}
 	defer l.Close()
 
 	// 获取端口号
 	p := l.Addr().(*net.TCPAddr).Port
-	return p
+	return p, nil
 }

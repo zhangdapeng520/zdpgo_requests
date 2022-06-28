@@ -45,9 +45,7 @@ func (r *Requests) parseArgs(request *Request, args ...interface{}) {
 		default: // 结构体类型，作为JSON数据处理
 			request.IsJson = true
 			jsonBytes, err := json.Marshal(argValue)
-			if err != nil {
-				r.Log.Error("解析JSON数据失败", "error", err)
-			} else {
+			if err == nil {
 				request.JsonText = string(jsonBytes)
 			}
 		}
@@ -154,7 +152,6 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	// 执行请求
 	httpResponse, err := client.Do(req)
 	if err != nil {
-		r.Log.Error("发送请求失败", "error", err)
 		return response, err
 	}
 	defer httpResponse.Body.Close()
@@ -164,8 +161,7 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	if httpResponse.Header.Get("Content-Encoding") == "gzip" && httpResponse.Header.Get("Accept-Encoding") != "" {
 		reader, err := gzip.NewReader(Body)
 		if err != nil {
-			r.Log.Error("解压响应体内容失败", "error", err)
-			return response, nil
+			return response, err
 		}
 		Body = reader
 	}
@@ -173,8 +169,7 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	// 读取响应体内容
 	content, err := ioutil.ReadAll(Body)
 	if err != nil {
-		r.Log.Error("读取响应体内容失败", "error", err)
-		return response, nil
+		return response, err
 	}
 
 	// 文本内容
@@ -211,14 +206,12 @@ func (r *Requests) AnyCompareStatusCode(method, target1Url, target2Url string, a
 	// 发送第一次请求
 	response1, err := r.Any(method, target1Url)
 	if err != nil {
-		r.Log.Error("发送第一次请求失败", "error", err)
 		return response1, err
 	}
 
 	// 发送第二次请求
 	response2, err := r.Any(method, target2Url, args...)
 	if err != nil {
-		r.Log.Error("发送第二次请求失败", "error", err)
 		return response2, err
 	}
 

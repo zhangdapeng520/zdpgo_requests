@@ -8,9 +8,7 @@ import (
 
 	"github.com/zhangdapeng520/zdpgo_file"
 	"github.com/zhangdapeng520/zdpgo_json"
-	"github.com/zhangdapeng520/zdpgo_log"
 	"github.com/zhangdapeng520/zdpgo_password"
-	"github.com/zhangdapeng520/zdpgo_random"
 )
 
 func init() {
@@ -22,18 +20,16 @@ type Requests struct {
 	Config     *Config                  // 配置对象
 	File       *zdpgo_file.File         // 文件对象
 	Json       *zdpgo_json.Json         // json处理对象
-	Random     *zdpgo_random.Random     // 随机数据生成
 	Password   *zdpgo_password.Password // 加密对象
-	Log        *zdpgo_log.Log
-	TaskNum    int // 任务数量
+	TaskNum    int                      // 任务数量
 }
 
-func New(log *zdpgo_log.Log) *Requests {
-	return NewWithConfig(&Config{}, log)
+func New() *Requests {
+	return NewWithConfig(&Config{})
 }
 
 // NewWithConfig 通过配置创建Requests请求对象
-func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
+func NewWithConfig(config *Config) *Requests {
 	r := &Requests{}
 
 	// 配置
@@ -55,17 +51,15 @@ func NewWithConfig(config *Config, log *zdpgo_log.Log) *Requests {
 	if config.LimitSleepSeconds == 0 {
 		config.LimitSleepSeconds = 3
 	}
-	r.Config = config // 配置对象
-	r.Log = log
-	r.Json = zdpgo_json.New()        // 实例化json对象
-	r.File = zdpgo_file.New()        // 实例化文件对象
-	r.Random = zdpgo_random.New(log) // 随机数据对象
+	r.Config = config         // 配置对象
+	r.Json = zdpgo_json.New() // 实例化json对象
+	r.File = zdpgo_file.New() // 实例化文件对象
 	r.Password = zdpgo_password.NewWithConfig(&zdpgo_password.Config{
 		EccKey: zdpgo_password.Key{
 			PrivateKey: config.Ecc.PrivateKey,
 			PublicKey:  config.Ecc.PublicKey,
 		},
-	}, r.Log)
+	})
 
 	// 返回
 	return r

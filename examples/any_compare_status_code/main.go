@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_log"
-
 	"github.com/zhangdapeng520/zdpgo_requests"
 )
 
 func main() {
-	r := zdpgo_requests.New(zdpgo_log.NewWithDebug(true, "log.log"))
+	r := zdpgo_requests.New()
 	targetUrl := "http://localhost:3333/ping"
 	jsonUrl := "http://localhost:3333/json"
 	textUrl := "http://localhost:3333/text"
