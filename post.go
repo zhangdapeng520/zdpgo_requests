@@ -2,8 +2,6 @@ package zdpgo_requests
 
 import (
 	"encoding/base64"
-
-	"github.com/zhangdapeng520/zdpgo_password"
 )
 
 /*
@@ -14,24 +12,22 @@ import (
 @Description:
 */
 
-var (
-	ecc *zdpgo_password.Ecc
-)
-
 // PostEcc 发送POST请求的ECC加密数据
 // @param targetUrl 目标地址
 // @param jsonStr JSON格式的字符串
 func (r *Requests) PostEcc(targetUrl, jsonStr string) (*Response, error) {
 	// 获取ECC加密对象
-	if ecc == nil {
-		ecc = r.Password.GetEcc()
-		privateKey, publicKey, err := ecc.GetKey()
-		if err != nil {
-			return nil, err
-		}
-		r.Config.Ecc.PrivateKey = privateKey
-		r.Config.Ecc.PublicKey = publicKey
+	ecc, err := r.Password.GetEcc()
+	if err != nil {
+		return nil, err
 	}
+
+	privateKey, publicKey, err := ecc.GetKey()
+	if err != nil {
+		return nil, err
+	}
+	r.Config.Ecc.PrivateKey = privateKey
+	r.Config.Ecc.PublicKey = publicKey
 
 	// 加密数据
 	encryptData, err := ecc.EncryptByPublicKey([]byte(jsonStr), r.Config.Ecc.PublicKey)
@@ -77,15 +73,17 @@ func (r *Requests) PostAes(targetUrl, jsonStr string) (*Response, error) {
 // PostEccText POST提交ECC加密的纯文本
 func (r *Requests) PostEccText(targetUrl, data string) (*Response, error) {
 	// 获取ECC加密对象
-	if ecc == nil {
-		ecc = r.Password.GetEcc()
-		privateKey, publicKey, err := ecc.GetKey()
-		if err != nil {
-			return nil, err
-		}
-		r.Config.Ecc.PrivateKey = privateKey
-		r.Config.Ecc.PublicKey = publicKey
+	ecc, err := r.Password.GetEcc()
+	if err != nil {
+		return nil, err
 	}
+
+	privateKey, publicKey, err := ecc.GetKey()
+	if err != nil {
+		return nil, err
+	}
+	r.Config.Ecc.PrivateKey = privateKey
+	r.Config.Ecc.PublicKey = publicKey
 
 	// 加密数据
 	encryptData, err := ecc.EncryptByPublicKey([]byte(data), r.Config.Ecc.PublicKey)

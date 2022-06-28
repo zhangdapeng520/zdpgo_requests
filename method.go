@@ -3,6 +3,7 @@ package zdpgo_requests
 import (
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -105,7 +106,7 @@ func (r *Requests) Any(method, targetUrl string, args ...interface{}) (*Response
 	defer func() {
 		// 捕获异常
 		if err := recover(); err != nil {
-			r.Log.Error("处理请求失败", "error", err)
+			fmt.Println("处理请求失败", "error", err)
 		}
 	}()
 
