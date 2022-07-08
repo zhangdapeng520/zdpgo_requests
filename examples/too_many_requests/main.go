@@ -15,7 +15,7 @@ func main() {
 	for i < 100000 {
 		response, err := requests.PostAes(target, jsonStr)
 		if err != nil {
-			requests.Log.Error("解密AES数据失败", "error", err)
+			fmt.Println("解密AES数据失败", "error", err)
 		}
 		fmt.Println(response.ToJsonStr())
 		i++

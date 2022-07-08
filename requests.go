@@ -54,12 +54,7 @@ func NewWithConfig(config *Config) *Requests {
 	r.Config = config         // 配置对象
 	r.Json = zdpgo_json.New() // 实例化json对象
 	r.File = zdpgo_file.New() // 实例化文件对象
-	r.Password = zdpgo_password.NewWithConfig(&zdpgo_password.Config{
-		EccKey: zdpgo_password.Key{
-			PrivateKey: config.Ecc.PrivateKey,
-			PublicKey:  config.Ecc.PublicKey,
-		},
-	})
+	r.Password = zdpgo_password.New()
 
 	// 返回
 	return r

@@ -2,8 +2,8 @@ github.com/zhangdapeng520/zdpgo_file v1.0.6 h1:AzM4x+dOKKo3Hsw3iULvdeyLlHvKrAn+C
 github.com/zhangdapeng520/zdpgo_file v1.0.6/go.mod h1:hOQvYtMA1GQm5R/0cIK2vEwL4qybldZ+uEpd3n5NDsM=
 github.com/zhangdapeng520/zdpgo_json v0.1.2 h1:E5Zf0VpTFZP5VrVGQqp7nvYsOQhDhIg2vQEkjldwlJc=
 github.com/zhangdapeng520/zdpgo_json v0.1.2/go.mod h1:ArbXlMRMsWO+3bIobPaYK/P86yYrefnQLro0/QgHWS4=
-github.com/zhangdapeng520/zdpgo_password v1.2.9 h1:M9ZitYyAYYaQnUpXHRrYvk20moj76K0yyNyBeTbWGY4=
-github.com/zhangdapeng520/zdpgo_password v1.2.9/go.mod h1:KcXzy1L5qiFv6xPFIODhZSyvjqIURHy3ePNI3priYyE=
+github.com/zhangdapeng520/zdpgo_password v1.3.0 h1:NZQZXI37F7Dwl9cfiDkrT9sdDnO5HYLzCKLYwWos+V4=
+github.com/zhangdapeng520/zdpgo_password v1.3.0/go.mod h1:KcXzy1L5qiFv6xPFIODhZSyvjqIURHy3ePNI3priYyE=
 golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
